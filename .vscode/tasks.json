@@ -1,0 +1,24 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Compile",
+      "command": "gcc ${file} -o ${workspaceFolder}/build/${relativeFileDirname}/${fileBasenameNoExtension}.o",
+      "type": "shell",
+      "dependsOn": [
+        "Create build directory"
+      ],
+      "args": [],
+      "presentation": {
+        "reveal": "silent"
+      },
+      "group": "build"
+    },
+    {
+      "label": "Create build directory",
+      "type": "shell",
+      "command": "mkdir -p ${workspaceFolder}/build/${relativeFileDirname}/",
+      "problemMatcher": []
+    }
+  ]
+}
