@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <float.h>
 
 typedef struct {
     int x, y;
@@ -61,14 +62,38 @@ float distance(Point p1, Point p2) {
     return sqrt(pow((p1.x - p2.x), 2) + pow((p1.y - p2.y), 2));
 }
 
-float closestPoints(Point* points, int n) {
-    // Base case here
+float get_min_distance(Point* points, int n) {
+    float min_d = FLT_MAX;
+    float d;
+
+    for (int i = 0; i<(n-1); i++) {
+        for (int j = i+1; j<n; j++) {
+            d = distance(points[i], points[j]);
+            if (d < min_d) {
+                min_d = d;
+            }
+        }
+    }
+
+    return min_d;
+}
+
+float closest_points(Point* points, int n) {
+    // Base case
+    if (n <= 3) {
+        return get_min_distance(points, n);
+    }
 
     int mid = n/2;
+    Point mid_point = points[mid];
 
-    // Split array
-    // Find left and right minimum distance
-    // Check points in the middle
+    // calculate left and right minimum distances
+    float dl = closest_points(points, mid);
+    float dr = closest_points(points + mid, n - mid);
+    
+    float d = fmin(dl, dr);
+
+    // TODO: Check points with distance from middle < d
 }
 
 int main() {
