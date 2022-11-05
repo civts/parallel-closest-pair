@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "xaver.clang-format",
+    "vadimcn.vscode-lldb",
+    "franneck94.c-cpp-runner"
+    //Also ms-vscode.cpptools, but VSCodium complains since it can not be found on openvsx
+  ]
+}
