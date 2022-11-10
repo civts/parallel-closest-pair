@@ -4,10 +4,10 @@
     {
       "type": "shell",
       "label": "GCC build active file for debug",
-      "command": "gcc",
       "dependsOn": [
         "Ensure build folder exists"
       ],
+      "command": "gcc",
       "args": [
         "-lm", //link math library
         "-g", //enable debug
@@ -31,10 +31,22 @@
     {
       "label": "Ensure build folder exists",
       "type": "shell",
+      "dependsOn": [
+        "Remove build folder"
+      ],
       "command": "mkdir",
       "args": [
         "-p",
         "${workspaceFolder}/build/${relativeFileDirname}"
+      ]
+    },
+    {
+      "label": "Remove build folder",
+      "type": "shell",
+      "command": "rm",
+      "args": [
+        "-r",
+        "${workspaceFolder}/build"
       ]
     }
   ]
