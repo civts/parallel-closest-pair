@@ -12,6 +12,7 @@
         "-lm", //link math library
         "-g", //enable debug
         "-O0", //turn off compiler optimizations (do not optimize variables)
+        "-D_FORTIFY_SOURCE=0", //Disable fortify source since it requires -O>0
         "-o",
         "${workspaceFolder}/build/${relativeFileDirname}/${fileBasenameNoExtension}.o",
         "${file}",
