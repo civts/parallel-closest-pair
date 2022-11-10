@@ -58,7 +58,7 @@ With [Nix](https://nixos.org) and [direnv](https://direnv.net) you can get exact
 ```bash
 git clone https://github.com/civts/parallel-closest-pair #Downloads this repository
 cd parallel-closest-pair
-direnv activate #Fetches all the dependencies (and VSCodium)
+direnv allow #Fetches all the dependencies (and VSCodium)
 codium . #Launches VSCodium
 ```
 
