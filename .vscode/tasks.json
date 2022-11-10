@@ -46,7 +46,7 @@
       "type": "shell",
       "command": "rm",
       "args": [
-        "-r",
+        "-rf",
         "${workspaceFolder}/build"
       ]
     }
