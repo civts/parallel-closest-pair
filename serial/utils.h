@@ -29,6 +29,13 @@ int compareX(const void *e1, const void *e2) {
   return (p1->x - p2->x);
 }
 
+// Compare two points based on their y coordinate
+int compareY(const void *e1, const void *e2) {
+  Point *p1 = (Point *)e1;
+  Point *p2 = (Point *)e2;
+  return (p1->y - p2->y);
+}
+
 // Returns the distance between the two given points
 double distance(const Point p1, const Point p2) {
   return sqrt(pow((p1.x - p2.x), 2) + pow((p1.y - p2.y), 2));
