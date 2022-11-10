@@ -18,8 +18,8 @@
       in
       {
         devShell = with pkgs; mkShell rec {
-          buildInputs = [
-            gcc
+          nativeBuildInputs = [
+            gcc12
             glibc
             clang #Required by xaver.clang-format
             (vscode-with-extensions.override {

@@ -35,7 +35,7 @@ Their distance is:
 
 1. Install the following packets:
 
-   - gcc (we used version [11.3.0](https://repology.org/project/gcc/versions))
+   - gcc (we used version [12.2.0](https://repology.org/project/gcc/versions))
    - glibc (we used version [2.35-163](https://repology.org/project/glibc/versions))
    - clang-format (we used version [11.1.0](https://clang.llvm.org/docs/ClangFormat.html))
 
