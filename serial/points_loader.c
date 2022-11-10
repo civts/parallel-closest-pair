@@ -48,5 +48,7 @@ PointVec loadData(const char *path) {
     point_vec.points[i] = tmp;
   }
 
+  fclose(f);
+
   return point_vec;
 }
