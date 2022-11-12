@@ -14,7 +14,7 @@ int main() {
   PairOfPoints closestPair;
 
   debugPrint("Reading the points from file");
-  const PointVec point_vec = loadData("../data/test_dataset.txt");
+  const PointVec point_vec = loadData("../data/100k.txt");
 
   debugPrint("Sorting the points based on x coordinate");
   qsort(point_vec.points, point_vec.length, sizeof(Point), compareX);
@@ -40,7 +40,7 @@ int main() {
 
   debugPrint("Getting the closest points with divide et impera algorithm");
   begin = clock();
-  closestPair = detClosestPoints(point_vec.points, point_vec.length);
+  closestPair = detClosestPointsWrapper(point_vec);
   end = clock();
   time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
 

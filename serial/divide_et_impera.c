@@ -21,15 +21,15 @@ PairOfPoints getMinDistance(const Point *points, const int n) {
   return result;
 }
 
-PairOfPoints getMinDistanceMidY(Point *points, const int size,
-                                const PairOfPoints dist) {
+PairOfPoints getMinDistanceToMidY(Point *points, const int size,
+                                  const PairOfPoints dist) {
   PairOfPoints min_d = dist;
 
   qsort(points, size, sizeof(Point), compareY);
 
   for (int i = 0; i < size; ++i) {
     for (int j = i + 1;
-         j < size && (points[j].y - points[i].x) < min_d.distance; j++) {
+         j < size && (points[j].y - points[i].y) < min_d.distance; j++) {
       if (distance(points[i], points[j]) < min_d.distance) {
         min_d.distance = distance(points[i], points[j]);
         min_d.point1 = points[i];
@@ -37,24 +37,28 @@ PairOfPoints getMinDistanceMidY(Point *points, const int size,
       }
     }
   }
+
+  return min_d;
 }
 
-PairOfPoints detClosestPoints(const Point *points, const int n) {
+PairOfPoints detClosestPoints(Point *points, const int n) {
   // Base case
   if (n <= 3) {
     return getMinDistance(points, n);
   }
 
+  PairOfPoints dl, dr, d, d_mid;
+
   int mid = n / 2;
   Point mid_point = points[mid];
 
-  // calculate left and right minimum distances
-  PairOfPoints dl = detClosestPoints(points, mid);
-  PairOfPoints dr = detClosestPoints(points + mid, n - mid);
+  // Calculate left and right minimum distances
+  dl = detClosestPoints(points, mid);
+  dr = detClosestPoints(points + mid, n - mid);
 
-  PairOfPoints d = dl.distance < dr.distance ? dl : dr;
+  d = dl.distance < dr.distance ? dl : dr;
 
-  // TODO: Check points with distance from middle < d
+  // Check points with distance from middle < d
   Point mid_set[n];
   int k = 0;
 
@@ -65,7 +69,12 @@ PairOfPoints detClosestPoints(const Point *points, const int n) {
     }
   }
 
-  PairOfPoints d_mid = getMinDistanceMidY(mid_set, k, d);
+  d_mid = getMinDistanceToMidY(mid_set, k, d);
 
   return d.distance < d_mid.distance ? d : d_mid;
+}
+
+PairOfPoints detClosestPointsWrapper(PointVec point_vec) {
+  qsort(point_vec.points, point_vec.length, sizeof(Point), compareX);
+  return detClosestPoints(point_vec.points, point_vec.length);
 }
