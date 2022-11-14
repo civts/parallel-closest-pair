@@ -1,7 +1,7 @@
+#include "../utils/points_loader.c"
+#include "../utils/utils.h"
 #include "divide_et_impera.c"
 #include "naive.c"
-#include "points_loader.c"
-#include "utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -14,7 +14,7 @@ int main() {
   PairOfPoints closestPair;
 
   debugPrint("Reading the points from file");
-  const PointVec point_vec = loadData("../data/100k.txt");
+  const PointVec point_vec = loadData("../data/5k.txt");
 
   debugPrint("Sorting the points based on x coordinate");
   qsort(point_vec.points, point_vec.length, sizeof(Point), compareX);

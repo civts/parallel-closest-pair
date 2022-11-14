@@ -43,7 +43,8 @@
     "**/.vscode/**"
   ],
   "files.associations": {
-    "stdlib.h": "c"
+    "stdlib.h": "c",
+    "utils.h": "c"
   },
   "python.analysis.typeCheckingMode": "basic"
 }

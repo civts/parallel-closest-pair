@@ -1,4 +1,4 @@
-#include "utils.h"
+#include "../utils/utils.h"
 
 /// Finds the closest pair of points in the provided point vector
 /// in O(n^2). More precisely, it performs ((n^2)/2)-n comparisons
