@@ -30,7 +30,7 @@ int main() {
   end = clock();
   time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
 
-  printf("Found the closest pair in %.2f milliseconds.\n"
+  printf("Found the closest pair in %.2f seconds.\n"
          "The closest pair of points is:\n"
          "(%d, %d) and (%d, %d)\n"
          "Their distance is:\n"
@@ -44,7 +44,7 @@ int main() {
   end = clock();
   time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
 
-  printf("Found the closest pair in %.2f milliseconds.\n"
+  printf("Found the closest pair in %.2f seconds.\n"
          "The closest pair of points is:\n"
          "(%d, %d) and (%d, %d)\n"
          "Their distance is:\n"

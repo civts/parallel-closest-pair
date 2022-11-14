@@ -44,5 +44,6 @@
   ],
   "files.associations": {
     "stdlib.h": "c"
-  }
+  },
+  "python.analysis.typeCheckingMode": "basic"
 }
