@@ -5,12 +5,25 @@
 int main() {
   int comm_sz;
   int my_rank;
+  int n_points;
+  int local_n;
 
   MPI_Init(NULL, NULL);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 
-  if (my_rank != 0) {
+  // Create Point Datatype for MPI
+  MPI_Datatype types[2] = {MPI_INT, MPI_INT};
+  MPI_Datatype mpi_point_type;
+
+  MPI_Aint offsets[2];
+  offsets[0] = offsetof(Point, x);
+  offsets[1] = offsetof(Point, y);
+
+  MPI_Type_create_struct(2, {1, 1}, offsets, types, &mpi_point_type);
+  MPY_Type_commit(&mpi_point_type);
+
+  if (my_rank == 0) {
 
     // load data
     debugPrint("Reading the points from file");
@@ -19,11 +32,21 @@ int main() {
     debugPrint("Sorting the points based on x coordinate");
     qsort(point_vec.points, point_vec.length, sizeof(Point), compareX);
 
-    // split points between processes
-    // merge results
-
-  } else {
+    n_points = point_vec.length;
   }
+
+  // Broadcast number of points to each process
+  MPI_Bcast(&n_points, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+  // If n_points is not a multiple of comm_sz, last process takes the remaining
+  // points
+  if (my_rank != (comm_sz - 1)) {
+    local_n = n_points / comm_sz;
+  } else {
+    local_n = n_points / comm_sz + (n_points % comm_sz);
+  }
+
+  printf("Process %d : %d points", my_rank, local_n);
 
   MPI_Finalize();
   return 0;
