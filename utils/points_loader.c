@@ -14,7 +14,7 @@ PointVec loadData(const char *path) {
   // Open file
   f = fopen(path, "r");
   if (f == NULL) {
-    printf("Can't open file %s", path);
+    printf("Can't open file %s\n", path);
     exit(1);
   }
 
@@ -22,10 +22,10 @@ PointVec loadData(const char *path) {
   fscanf(f, "%d", &n);
 
   if (n > INT_MAX) {
-    printf("Too many points: %u. Maximum is %i", n, INT_MAX);
+    printf("Too many points: %u. Maximum is %i\n", n, INT_MAX);
     exit(1);
   } else if (n < 2) {
-    printf("Too few points. At least two are needed.");
+    printf("Too few points. At least two are needed.\n");
     exit(1);
   }
 
@@ -36,7 +36,7 @@ PointVec loadData(const char *path) {
   if (point_vec.points == NULL) {
     printf("Out of memory.\n"
            "This machine does not have enough memory for %d points.\n"
-           "Exiting X(",
+           "Exiting X(\n",
            n);
     exit(1);
   }
