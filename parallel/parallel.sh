@@ -7,4 +7,4 @@
 # execution queue
 #PBS -q short_cpuQ
 module load mpich-3.2
-mpirun.actual -n 4 ./project/parallel-closest-pair/parallel/main ./project/parallel-closest-pair/data/5k.txt
+mpirun.actual -n 4 ./project/parallel-closest-pair/parallel/main ./project/parallel-closest-pair/data/test_dataset.txt ./project/parallel-closest-pair/parallel/outputs/
