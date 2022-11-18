@@ -1,5 +1,6 @@
 #include "../utils/points_loader.c"
 #include "../utils/utils.h"
+#include "divide_et_impera.c"
 #include <mpi.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -14,6 +15,8 @@ int main(int argc, char **argv) {
   int i;
   PointVec point_vec;
   PointVec local_points;
+  PairOfPoints local_d;
+  PairOfPoints global_d;
   FILE *out_fp;
 
   char *dataset_path = argv[1];
@@ -110,6 +113,39 @@ int main(int argc, char **argv) {
     fprintf(out_fp, "(%d, %d)\n", local_points.points[i].x,
             local_points.points[i].y);
   }
+
+  if (local_points.length > 1) {
+    local_d = detClosestPointsWrapper(local_points);
+    fprintf(out_fp, "Local smallest distance: %.2f\n", local_d.distance);
+  } else {
+    fprintf(out_fp, "Less than 2 points: no distance\n");
+  }
+
+  // TODO: Send local_d to process 0
+  // Check intermediate points
+  // if (my_rank == 0) {
+  //   double dist;
+  //   Point p1, p2;
+
+  //   global_d = local_d;
+    
+  //   for (i = 1; i < comm_sz; i++) {
+  //     p1 = point_vec[i*stride-1];
+  //     p2 = point_vec[i*stride];
+  //     dist = distance(p1, p2);
+  //     if (dist < global_d.distance) {
+  //       global_d.distance = dist;
+  //       global_d.point1 = p1;
+  //       global_d.point2 = p2;
+  //     }
+  //   }
+  // }
+  
+  // Free memory
+  free(displs);
+  free(scounts);
+  free(local_points.points);
+  free(point_vec.points);
 
   MPI_Finalize();
   return 0;
