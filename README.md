@@ -4,6 +4,20 @@
 
 ## Using the program 💽
 
+### Connecting to the cluster
+
+You'll need a VPN to connect to Trento's VPN to access `hpc2.unitn.it`
+
+1.  Open the GlobalProtect VPN client by running `gpclient` (be sure to follow the setup instructions from the [official repo](https://github.com/yuezk/GlobalProtect-openconnect))
+
+1.  Enter as portal address `vpn.icts.unitn.it`
+
+1.  The username is your unitn email without the "studenti" subdomain -e.g., `mario.rossi@unitn.it`-
+
+1.  The password is your unitn password
+
+1.  Now you should be able to successfully ping `hpc2.unitn.it`
+
 ### Input format
 
 A text file where the first row contains the number of points (unsigned int32).
