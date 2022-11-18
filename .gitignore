@@ -1,2 +1,3 @@
 .direnv
 build
+.mpi_include

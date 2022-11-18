@@ -21,6 +21,7 @@
           nativeBuildInputs = [
             gcc12
             glibc
+            mpi
             clang #Required by xaver.clang-format
             (vscode-with-extensions.override {
               vscode = vscodium;
@@ -43,6 +44,10 @@
               ];
             })
           ];
+          shellHook = ''
+            #Add the MPI header files to the workspace so that they can be found by gcc/mpicc
+            ln -sfn ${mpi}/include ./mpi_include
+          '';
         };
       });
 }

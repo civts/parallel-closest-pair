@@ -6,7 +6,8 @@
     "**/CVS": true,
     "**/.DS_Store": true,
     "**/Thumbs.db": true,
-    ".direnv/": true
+    ".direnv/": true,
+    ".mpi_include": true
   },
   "[c]": {
     "editor.defaultFormatter": "xaver.clang-format"
