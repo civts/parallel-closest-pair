@@ -2,6 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
+      //Use this one for the serial version
       "name": "C/C++ Runner: Debug Session",
       "type": "cppdbg",
       "request": "launch",
@@ -24,6 +25,31 @@
         }
       ],
       "preLaunchTask": "GCC build active file for debug"
+    },
+    {
+      //Use this one for the parallel version
+      "name": "MPI: Debug Session",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/${relativeFileDirname}/${fileBasenameNoExtension}.o",
+      "args": [
+        ""
+      ],
+      "environment": [],
+      "cwd": "${workspaceFolder}/${relativeFileDirname}",
+      "stopAtEntry": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb",
+      "internalConsoleOptions": "openOnSessionStart",
+      "externalConsole": false,
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "MPI build active file for debug"
     }
   ]
 }

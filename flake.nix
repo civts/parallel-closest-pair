@@ -46,7 +46,7 @@
           ];
           shellHook = ''
             #Add the MPI header files to the workspace so that they can be found by gcc/mpicc
-            ln -sfn ${mpi}/include ./mpi_include
+            ln -sfn ${mpi}/include ./.mpi_include
           '';
         };
       });
