@@ -34,11 +34,18 @@ int main(int argc, char **argv) {
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 
   // setup output file
-  char rank_str[3];
+  int num_digits = 0;
+  int tmp_rank = my_rank;
+  do {
+    tmp_rank /= 10;
+    num_digits++;
+  } while (tmp_rank > 0);
+  char *rank_str = malloc(sizeof(char) * (num_digits + 1));
   sprintf(rank_str, "%d.txt", my_rank);
 
   out_fp = fopen(strcat(output_path, rank_str), "w+");
   fprintf(out_fp, "Process %d\n", my_rank);
+  free(rank_str);
 
   // Create Point Datatype for MPI
   MPI_Datatype types[2] = {MPI_INT, MPI_INT};
@@ -53,7 +60,7 @@ int main(int argc, char **argv) {
   MPI_Type_commit(&mpi_point_type);
 
   if (my_rank == 0) {
-    
+
     // load data
     debugPrint("Reading the points from file");
     point_vec = loadData(dataset_path);
@@ -99,10 +106,11 @@ int main(int argc, char **argv) {
   MPI_Scatterv(point_vec.points, scounts, displs, mpi_point_type,
                local_points.points, local_n, mpi_point_type, 0, MPI_COMM_WORLD);
 
-  for (i = 0; i<local_points.length; i++) {
-    fprintf(out_fp, "(%d, %d)\n", local_points.points[i].x, local_points.points[i].y);
+  for (i = 0; i < local_points.length; i++) {
+    fprintf(out_fp, "(%d, %d)\n", local_points.points[i].x,
+            local_points.points[i].y);
   }
-  
+
   MPI_Finalize();
   return 0;
 }
