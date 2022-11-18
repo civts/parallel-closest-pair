@@ -17,13 +17,13 @@ int main(int argc, char **argv) {
   FILE *out_fp;
 
   char *dataset_path = argv[1];
-  if (dataset_path == NULL) {
+  if (dataset_path == NULL || *dataset_path == '\0') {
     printf("Missing positional argument 1: the path to the dataset file. "
            "Terminating\n");
     exit(1);
   }
   char *output_path = argv[2];
-  if (output_path == NULL) {
+  if (output_path == NULL || *output_path == '\0') {
     printf("Missing positional argument 2: the path to the output file. "
            "Terminating\n");
     exit(1);
