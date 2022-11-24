@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
   int n_points;
   int local_n;
   int i;
-  double total_time, read_time;
+  double total_time, read_time, scatter_time;
 
   PointVec point_vec;
   PointVec local_points;
@@ -105,16 +105,17 @@ int main(int argc, char **argv) {
 
     fprintf(out_fp, "Loaded and sorted %d points\n", n_points);
   }
-  read_time += MPI_Wtime;
+  read_time += MPI_Wtime();
 
   // Broadcast number of points to each process
   MPI_Bcast(&n_points, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
   fprintf(out_fp, "Received total number of points (%d)\n", n_points);
 
+
+  scatter_time = -MPI_Wtime();
   int *displs = (int *)malloc(comm_sz * sizeof(int));
   int *scounts = (int *)malloc(comm_sz * sizeof(int));
-  Point *borders = (Point *)malloc((comm_sz - 1) * sizeof(Point));
 
   int stride = n_points / comm_sz;
 
@@ -141,21 +142,20 @@ int main(int argc, char **argv) {
   MPI_Scatterv(point_vec.points, scounts, displs, mpi_point_type,
                local_points.points, local_n, mpi_point_type, 0, MPI_COMM_WORLD);
 
+  scatter_time += MPI_Wtime();
+
   for (i = 0; i < local_points.length; i++) {
     fprintf(out_fp, "(%d, %d)\n", local_points.points[i].x,
             local_points.points[i].y);
   }
 
   if (local_points.length > 1) {
-    local_d = detClosestPointsWrapper(local_points);
+    local_d = detClosestPoints(local_points);
     fprintf(out_fp, "Local smallest distance: %.2f\n", local_d.distance);
   } else {
     local_d.distance = DBL_MAX;
     fprintf(out_fp, "Less than 2 points: no distance\n");
   }
-  
-  // Reduce
-  // MPI_Reduce(&local_d, &global_d, 1, mpi_point_type, min_op, 0, MPI_COMM_WORLD);
 
   // TO improve: tree merge
   if (my_rank == 0) {
@@ -204,6 +204,7 @@ int main(int argc, char **argv) {
   if (my_rank == 0) {
     printf("Total time: %f seconds\n", total_time);
     printf("\tReading time: %f seconds\n", read_time);
+    printf("\tScatter time: %f seconds\n", scatter_time);
   }
 
   MPI_Finalize();
