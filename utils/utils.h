@@ -3,6 +3,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 const short DEBUGGING = 1;
 
@@ -39,6 +40,11 @@ int compareY(const void *e1, const void *e2) {
 // Returns the distance between the two given points
 double distance(const Point p1, const Point p2) {
   return sqrt(pow((p1.x - p2.x), 2) + pow((p1.y - p2.y), 2));
+}
+
+// Returns the distance between the two given points, x coord
+double distance_x(const Point p1, const Point p2) {
+  return abs(p1.x - p2.x);
 }
 
 // Utility function to print to standard output only if we are debugging
