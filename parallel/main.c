@@ -31,6 +31,7 @@ int main(int argc, char **argv) {
   int my_rank;
   int n_points;
   int local_n;
+  int levels;
   int i;
   double total_time, read_time, scatter_time;
 
@@ -155,6 +156,19 @@ int main(int argc, char **argv) {
   } else {
     local_d.distance = DBL_MAX;
     fprintf(out_fp, "Less than 2 points: no distance\n");
+  }
+
+  // Tree merge
+  levels = (int)log2(comm_sz);
+  for (i = 0; i < levels; i++) {
+    if (my_rank % pow(2, i+1) != 0) {
+      //Send to processes with rank (my_rank - 2^i):
+      // - local distance
+      // - border points
+      //return
+    } else {
+      // Receive and merge
+    }
   }
 
   // TO improve: tree merge
