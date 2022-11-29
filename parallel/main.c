@@ -7,25 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// // Custom min function used in the reduce
-// void minPairOfPoints(PairOfPoints *in, PairOfPoints *out, int *len, MPI_Datatype *dptr) {
-//   int i;
-//   PairOfPoints min = in[0];
-
-//   printf("len %d\n", *len);
-
-//   for (i = 0; i < *len; i++) {
-//     printf("d %.2f\n", in[i].distance);
-//     if (in[i].distance < min.distance) {
-//       min.distance = in[i].distance;
-//       min.point1 = in[i].point1;
-//       min.point2 = in[i].point2;
-//     }
-
-//     out[i] = min;
-//   }
-// }
-
 int main(int argc, char **argv) {
   int comm_sz;
   int my_rank;
@@ -113,7 +94,6 @@ int main(int argc, char **argv) {
 
   fprintf(out_fp, "Received total number of points (%d)\n", n_points);
 
-
   scatter_time = -MPI_Wtime();
   int *displs = (int *)malloc(comm_sz * sizeof(int));
   int *scounts = (int *)malloc(comm_sz * sizeof(int));
@@ -161,11 +141,11 @@ int main(int argc, char **argv) {
   // Tree merge
   levels = (int)log2(comm_sz);
   for (i = 0; i < levels; i++) {
-    if (my_rank % pow(2, i+1) != 0) {
-      //Send to processes with rank (my_rank - 2^i):
-      // - local distance
-      // - border points
-      //return
+    if (my_rank % pow(2, i + 1) != 0) {
+      // Send to processes with rank (my_rank - 2^i):
+      //  - local distance
+      //  - border points
+      // return
     } else {
       // Receive and merge
     }
@@ -188,26 +168,26 @@ int main(int argc, char **argv) {
 
   // Check intermediate points
   if (my_rank == 0) {
-    fprintf(out_fp, "global_d %.2f, P1 (%d, %d), P2 (%d, %d)\n", global_d.distance, 
-            global_d.point1.x, global_d.point1.y,
+    fprintf(out_fp, "global_d %.2f, P1 (%d, %d), P2 (%d, %d)\n",
+            global_d.distance, global_d.point1.x, global_d.point1.y,
             global_d.point2.x, global_d.point2.y);
-  //   double dist;
-  //   Point p1, p2;
+    //   double dist;
+    //   Point p1, p2;
 
-  //   global_d = local_d;
-    
-  //   for (i = 1; i < comm_sz; i++) {
-  //     p1 = point_vec[i*stride-1];
-  //     p2 = point_vec[i*stride];
-  //     dist = distance(p1, p2);
-  //     if (dist < global_d.distance) {
-  //       global_d.distance = dist;
-  //       global_d.point1 = p1;
-  //       global_d.point2 = p2;
-  //     }
-  //   }
+    //   global_d = local_d;
+
+    //   for (i = 1; i < comm_sz; i++) {
+    //     p1 = point_vec[i*stride-1];
+    //     p2 = point_vec[i*stride];
+    //     dist = distance(p1, p2);
+    //     if (dist < global_d.distance) {
+    //       global_d.distance = dist;
+    //       global_d.point1 = p1;
+    //       global_d.point2 = p2;
+    //     }
+    //   }
   }
-  
+
   // Free memory
   free(displs);
   free(scounts);
