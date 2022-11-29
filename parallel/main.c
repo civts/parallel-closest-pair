@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
   PointVec point_vec;
   PointVec local_points;
   PairOfPoints local_d;
-  PairOfPoints global_d;
+  PairOfPoints recv_d;
   FILE *out_fp;
 
   char *dataset_path = argv[1];
@@ -42,22 +42,32 @@ int main(int argc, char **argv) {
 
   total_time = -MPI_Wtime();
 
-  // // Create min operation used in reduce
-  // MPI_Op min_op;
-  // MPI_Op_create((MPI_User_function*)minPairOfPoints, 1, &min_op);
   MPI_Status mpi_stat;
 
   // Create Point Datatype for MPI
-  MPI_Datatype types[2] = {MPI_INT, MPI_INT};
+  MPI_Datatype types_1[2] = {MPI_INT, MPI_INT};
   MPI_Datatype mpi_point_type;
 
-  MPI_Aint offsets[2];
-  offsets[0] = offsetof(Point, x);
-  offsets[1] = offsetof(Point, y);
-  const int blocklengths[2] = {1, 1};
+  MPI_Aint offsets_1[2];
+  offsets_1[0] = offsetof(Point, x);
+  offsets_1[1] = offsetof(Point, y);
+  const int blocklengths_1[2] = {1, 1};
 
-  MPI_Type_create_struct(2, blocklengths, offsets, types, &mpi_point_type);
+  MPI_Type_create_struct(2, blocklengths_1, offsets_1, types_1, &mpi_point_type);
   MPI_Type_commit(&mpi_point_type);
+
+  // Create PairOfPoints Datatype for MPI
+  MPI_Datatype types_2[3] = {MPI_DOUBLE, mpi_point_type, mpi_point_type};
+  MPI_Datatype mpi_pair_of_points_type;
+
+  MPI_Aint offsets_2[3];
+  offsets_2[0] = offsetof(PairOfPoints, distance);
+  offsets_2[1] = offsetof(PairOfPoints, point1);
+  offsets_2[2] = offsetof(PairOfPoints, point2);
+  const int blocklengths_2[3] = {1, 1, 1};
+
+  MPI_Type_create_struct(3, blocklengths_2, offsets_2, types_2, &mpi_pair_of_points_type);
+  MPI_Type_commit(&mpi_pair_of_points_type);
 
   // setup output file
   int num_digits = 0;
@@ -131,7 +141,7 @@ int main(int argc, char **argv) {
   }
 
   if (local_points.length > 1) {
-    local_d = detClosestPoints(local_points);
+    local_d = detClosestPointsWrapper(local_points);
     fprintf(out_fp, "Local smallest distance: %.2f\n", local_d.distance);
   } else {
     local_d.distance = DBL_MAX;
@@ -141,53 +151,39 @@ int main(int argc, char **argv) {
   // Tree merge
   levels = (int)log2(comm_sz);
   for (i = 0; i < levels; i++) {
-    if (my_rank % pow(2, i + 1) != 0) {
-      // Send to processes with rank (my_rank - 2^i):
-      //  - local distance
-      //  - border points
-      // return
-    } else {
-      // Receive and merge
-    }
-  }
+    if (my_rank % (int)pow(2, i + 1) != 0 && my_rank != 0) {
+      int dest = my_rank - (int)pow(2, i);
+      if (dest >= 0) {
+        //Send to processes with rank (my_rank - 2^i)
+        MPI_Send(&local_d, 1, mpi_pair_of_points_type, dest, my_rank, MPI_COMM_WORLD);
 
-  // TO improve: tree merge
-  if (my_rank == 0) {
-    global_d = local_d;
-    for (i = 1; i < comm_sz; i++) {
-      MPI_Recv(&local_d, 1, mpi_point_type, i, i, MPI_COMM_WORLD, &mpi_stat);
-      if (local_d.distance < global_d.distance) {
-        global_d.distance = local_d.distance;
-        global_d.point1 = local_d.point1;
-        global_d.point2 = local_d.point2;
+        fprintf(out_fp, "Sending local_d to process %d\n", dest);
+        
+        // TODO send border points
       }
+    } else {
+      // Receive local distance and merge
+      int src = my_rank + (int)pow(2, i);
+      MPI_Recv(&recv_d, 1, mpi_pair_of_points_type, src, src, MPI_COMM_WORLD, &mpi_stat);
+      fprintf(out_fp, "Received local_d from process %d, %.2f, P1 (%d, %d), P2 (%d, %d)\n", 
+              src,  recv_d.distance, 
+              recv_d.point1.x, recv_d.point1.y,
+              recv_d.point2.x, recv_d.point2.y);
+      
+      if (recv_d.distance < local_d.distance) {
+        local_d.distance = recv_d.distance;
+        local_d.point1 = recv_d.point1;
+        local_d.point2 = recv_d.point2;
+      }
+
+      fprintf(out_fp, "Local_d: %.2f, P1 (%d, %d), P2 (%d, %d)\n", local_d.distance, 
+              local_d.point1.x, local_d.point1.y,
+              local_d.point2.x, local_d.point2.y);
+      
+      // TODO receive and merge border points
     }
-  } else {
-    MPI_Send(&local_d, 1, mpi_point_type, 0, my_rank, MPI_COMM_WORLD);
   }
-
-  // Check intermediate points
-  if (my_rank == 0) {
-    fprintf(out_fp, "global_d %.2f, P1 (%d, %d), P2 (%d, %d)\n",
-            global_d.distance, global_d.point1.x, global_d.point1.y,
-            global_d.point2.x, global_d.point2.y);
-    //   double dist;
-    //   Point p1, p2;
-
-    //   global_d = local_d;
-
-    //   for (i = 1; i < comm_sz; i++) {
-    //     p1 = point_vec[i*stride-1];
-    //     p2 = point_vec[i*stride];
-    //     dist = distance(p1, p2);
-    //     if (dist < global_d.distance) {
-    //       global_d.distance = dist;
-    //       global_d.point1 = p1;
-    //       global_d.point2 = p2;
-    //     }
-    //   }
-  }
-
+  
   // Free memory
   free(displs);
   free(scounts);
@@ -196,6 +192,9 @@ int main(int argc, char **argv) {
 
   total_time += MPI_Wtime();
   if (my_rank == 0) {
+    printf("Final distance: %f P1 (%d, %d)  P2 (%d, %d)\n", local_d.distance, 
+            local_d.point1.x, local_d.point1.y,
+            local_d.point2.x, local_d.point2.y);
     printf("Total time: %f seconds\n", total_time);
     printf("\tReading time: %f seconds\n", read_time);
     printf("\tScatter time: %f seconds\n", scatter_time);

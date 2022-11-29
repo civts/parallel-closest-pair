@@ -4,3 +4,5 @@ Local number of points: 2
 (7, 7)
 (9, 5)
 Local smallest distance: 2.83
+Sending local_d to process 2
+Sending local_d to process 1
