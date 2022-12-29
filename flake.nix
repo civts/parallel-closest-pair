@@ -15,6 +15,7 @@
             allowUnfree = true;
           };
         };
+        openVsxUtils = import ./openvsx.nix { inherit pkgs; };
       in
       {
         devShell = with pkgs; mkShell rec {
@@ -37,11 +38,24 @@
               ] ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
                 {
                   name = "c-cpp-runner";
+                  vscodeExtName = "c-cpp-runner";
                   publisher = "franneck94";
+                  vscodeExtPublisher = "franneck94";
                   version = "3.0.0";
-                  sha256 = "sha256-huI1qtBfBjD8N7t3HFnoX8kGcCNv8pDLOr0l3/0gD84=";
+                  sha256 = "sha256-YKEW6nvLLvkxjqZenztcf5zpbMPTqV1NYGVo19Fqv8I=";
                 }
-              ];
+              ]
+              ++ openVsxUtils.extensionsFromOpenvsxMarketplace [
+                {
+                  name = "open-remote-ssh";
+                  vscodeExtName = "open-remote-ssh";
+                  publisher = "jeanp413";
+                  vscodeExtPublisher = "jeanp413";
+                  version = "0.0.21";
+                  sha256 = "sha256-/khL21yn/85AIb54bpCnHxfbjCwsr96B+FNmIG8qBY4=";
+                }
+              ]
+              ;
             })
           ];
           shellHook = ''
