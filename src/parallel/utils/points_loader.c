@@ -19,7 +19,11 @@ PointVec loadData(const char *path) {
   }
 
   // Read number of points
-  fscanf(f, "%d", &n);
+  int scanf_result = fscanf(f, "%d", &n);
+  if (scanf_result == EOF) {
+    printf("Reached end of the file while trying to read the input size");
+    exit(1);
+  }
 
   if (n > INT_MAX) {
     printf("Too many points: %u. Maximum is %i\n", n, INT_MAX);
@@ -43,7 +47,11 @@ PointVec loadData(const char *path) {
 
   // Read points
   for (i = 0; i < n; i++) {
-    fscanf(f, "%d %d", &(tmp.x), &(tmp.y));
+    int scanf_result = fscanf(f, "%d %d", &(tmp.x), &(tmp.y));
+    if (scanf_result == EOF) {
+      printf("Reached end of the file while trying to read point %d", i + 1);
+      exit(1);
+    }
 
     point_vec.points[i] = tmp;
   }
