@@ -3,7 +3,8 @@
 #include <stdlib.h>
 
 // Finds the closest pair of points among the given ones.
-PairOfPoints closestPoints(const PointVec sorted_x) {
+// The input points must be sorted according to their x coordinates.
+PairOfPoints closestPointsRec(const PointVec sorted_x) {
   if (sorted_x.length == 2) {
     // Base case #1. With two points, we return their distance
     PairOfPoints result;
@@ -40,8 +41,8 @@ PairOfPoints closestPoints(const PointVec sorted_x) {
     right_half.length = remaining_length;
     right_half.points = &sorted_x.points[half];
     // Get the closest ones of each half
-    PairOfPoints closest_left = closestPoints(left_half);
-    PairOfPoints closest_right = closestPoints(right_half);
+    PairOfPoints closest_left = closestPointsRec(left_half);
+    PairOfPoints closest_right = closestPointsRec(right_half);
     PairOfPoints result = closest_left.distance < closest_right.distance
                               ? closest_left
                               : closest_right;
@@ -99,4 +100,25 @@ PairOfPoints closestPoints(const PointVec sorted_x) {
     free(points_in_the_band);
     return result;
   }
+}
+
+// Finds the closest pair of points among the given ones.
+PairOfPoints closestPoints(PointVec points) {
+  // Sort the points
+  qsort(points.points, points.length, sizeof(Point), compareX);
+  // Find the closest pair
+  PairOfPoints result = closestPointsRec(points);
+  // Make it so that point 1 is the leftmost of the pair,
+  // or the lower one if the x is the same
+  if (result.point1.x > result.point2.x) {
+    Point tmp = result.point1;
+    result.point1 = result.point2;
+    result.point2 = tmp;
+  } else if (result.point1.x == result.point2.x &&
+             result.point1.y > result.point2.y) {
+    Point tmp = result.point1;
+    result.point1 = result.point2;
+    result.point2 = tmp;
+  }
+  return result;
 }
