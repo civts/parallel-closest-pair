@@ -21,10 +21,10 @@
         devShell = with pkgs; mkShell rec {
           nativeBuildInputs = [
             gcc12
-            glibc
             mpi
             clang #Required by xaver.clang-format
             shfmt #Required by foxundermoon.shell-format
+            cmake
             (vscode-with-extensions.override {
               vscode = vscodium;
               vscodeExtensions = with vscode-extensions; [
@@ -37,6 +37,8 @@
                 foxundermoon.shell-format
                 #Nix specific
                 jnoortheen.nix-ide
+                #For Googletest
+                twxs.cmake
               ] ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
                 {
                   name = "c-cpp-runner";

@@ -116,3 +116,9 @@ codium . #Launches VSCodium
 ```
 
 Then open the file you want to debug and press `F5` to launch it.
+
+## Troubleshooting
+
+### VS Code
+
+If it does not find `gtest/gtest.h`, run `./scripts/test.sh`, ensure that the `test/build` is shown in the file explorer on the side (otherwise modify `files.exclude` in `settings.json` to not exclude it). Then restart VS Code.

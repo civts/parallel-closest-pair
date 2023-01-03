@@ -7,7 +7,9 @@
     "**/.DS_Store": true,
     "**/Thumbs.db": true,
     ".direnv/": true,
-    ".mpi_include": true
+    ".mpi_include": true,
+    "**/build": false,
+    "*/build": false,
   },
   "[c]": {
     "editor.defaultFormatter": "xaver.clang-format"
@@ -44,12 +46,7 @@
     "**/.vscode/**"
   ],
   "files.associations": {
-    "stdlib.h": "c",
-    "utils.h": "c",
-    "array": "c",
-    "hash_map": "c",
-    "string_view": "c",
-    "initializer_list": "c"
+    "flake.lock": "json",
   },
   "python.analysis.typeCheckingMode": "basic"
 }

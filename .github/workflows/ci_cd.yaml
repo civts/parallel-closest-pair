@@ -15,24 +15,13 @@ jobs:
       - name: Download the repo
         uses: actions/checkout@v3
       - name: Get the dependencies
-        run: sudo apt-get install -qy mpich
-      - name: Compile the code
+        run: sudo apt-get install -qy mpich cmake
+      - name: Compile the main executable
         run: |
           cd parallel
           mpicc main.c -lm
-      # - name: Download the repo
-      #   uses: actions/checkout@v3
-      # - name: Connect to VPN
-      #   id: connect_to_vpn
-      #   uses: ./.github/workflows/setup_vpn
-      #   with:
-      #     unitn_username: ${{secrets.UNITN_USERNAME}}
-      #     unitn_password: ${{secrets.UNITN_PASSWORD}}
-      # - name: Stop VPN
-      #   run: |
-      #     kill -15 ${{ steps.connect_to_vpn.outputs.vpn_pid }}
-      #     rm ./unitn_vpn_script.sh
-      #     rm ./unitn_hireport.sh
+      - name: Run the tests
+        run: ./scripts/test.sh
 
   deploy_on_cluster:
     name: Deploy on cluster
