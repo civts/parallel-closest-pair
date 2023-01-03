@@ -35,7 +35,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/${relativeFileDirname}/${fileBasenameNoExtension}.o",
       "args": [
-        "./data/5k.txt",
+        "./data/5K.txt",
         "./out"
       ],
       "environment": [],
