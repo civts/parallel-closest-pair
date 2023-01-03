@@ -94,6 +94,6 @@ if __name__ == '__main__':
 
     points = generate_points(N, minX, maxX, minY, maxY)
 
-    write_to_file(N, points, f'../data/{N}.txt')
+    write_to_file(N, points, f'../{N}.txt')
 
     print(f"Total time: {time.time() - start_time:.2f} s")
