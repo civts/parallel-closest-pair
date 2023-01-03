@@ -1,31 +1,33 @@
 {
   "version": "0.2.0",
   "configurations": [
-    {
-      //Use this one for the serial version
-      "name": "C/C++ Runner: Debug Session",
-      "type": "cppdbg",
-      "request": "launch",
-      "program": "${workspaceFolder}/build/${relativeFileDirname}/${fileBasenameNoExtension}.o",
-      "args": [
-        ""
-      ],
-      "environment": [],
-      "cwd": "${workspaceFolder}/${relativeFileDirname}",
-      "stopAtEntry": false,
-      "MIMode": "gdb",
-      "miDebuggerPath": "gdb",
-      "internalConsoleOptions": "openOnSessionStart",
-      "externalConsole": false,
-      "setupCommands": [
-        {
-          "description": "Enable pretty-printing for gdb",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
-        }
-      ],
-      "preLaunchTask": "GCC build active file for debug"
-    },
+    // {
+    //   //We used this one for the serial version, but since the other can also debug serial apps,
+    //   //this one is not needed anymore. Leaving it here in case the other somehow stops working.
+    //
+    //   "name": "C/C++ Runner: Debug Session",
+    //   "type": "cppdbg",
+    //   "request": "launch",
+    //   "program": "${workspaceFolder}/build/${relativeFileDirname}/${fileBasenameNoExtension}.o",
+    //   "args": [
+    //     ""
+    //   ],
+    //   "environment": [],
+    //   "cwd": "${workspaceFolder}/${relativeFileDirname}",
+    //   "stopAtEntry": false,
+    //   "MIMode": "gdb",
+    //   "miDebuggerPath": "gdb",
+    //   "internalConsoleOptions": "openOnSessionStart",
+    //   "externalConsole": false,
+    //   "setupCommands": [
+    //     {
+    //       "description": "Enable pretty-printing for gdb",
+    //       "text": "-enable-pretty-printing",
+    //       "ignoreFailures": true
+    //     }
+    //   ],
+    //   "preLaunchTask": "GCC build active file for debug"
+    // },
     {
       //Use this one for the parallel version
       "name": "MPI: Debug Session",
@@ -33,11 +35,11 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/${relativeFileDirname}/${fileBasenameNoExtension}.o",
       "args": [
-        "../data/5k.txt",
-        "../out"
+        "./data/5k.txt",
+        "./out"
       ],
       "environment": [],
-      "cwd": "${workspaceFolder}/${relativeFileDirname}",
+      "cwd": "${workspaceFolder}",
       "stopAtEntry": false,
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
