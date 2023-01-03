@@ -12,6 +12,41 @@
 
 #define VERSION "0.0.1"
 
+// Calls the finalize script.
+// This function shall be called only by the main process
+void call_finalize_script(char *const script_path) {
+  pid_t child_pid = fork();
+  if (child_pid == 0) { // in child
+    printf("Ready to call final script %s\n", script_path);
+    char *const args[] = {script_path, NULL};
+    execvp(args[0], args);
+    printf("If we got here, we had some kind of error...\n");
+  } else if (child_pid < 0) {
+    printf("Could not inform the world of my completion\n");
+    printf("Will just terminate silently...\n");
+  }
+}
+
+// Prints the help message, with the instructions to use this program
+void print_help() {
+  printf("parallel_closest_points, v%s", VERSION);
+  printf("This program solves the closest pair of points problem.");
+  printf("In doing so, it uses the MPI library in order to divide the "
+         "computation between");
+  printf("multiple processes to speed it up.\n");
+  printf("Usage: parallel_closest_points [input_path] [output_path] "
+         "[[finalize_script_path]]");
+  printf("The input_path is the path to the input file. See the README of this "
+         "project for");
+  printf("the format.");
+  printf("The output_path is the path where the output files will be written.");
+  printf("The finalize_script_path is the path to a program to run once the "
+         "computation");
+  printf("has finished -for example, to notify of its completion-. This last "
+         "parameter is");
+  printf("OPTIONAL.");
+}
+
 int main(int argc, char **argv) {
   int comm_sz;
   int my_rank;
@@ -25,6 +60,17 @@ int main(int argc, char **argv) {
   // PointVec local_points;
   PairOfPoints local_d;
   // PairOfPoints recv_d;
+
+  // If needed, print the help message
+  for (i = 0; i < argc; i++) {
+    char *arg = argv[i];
+    bool is_long_help = arg == "--help";
+    bool is_brief_help = arg == "-h";
+    if (is_long_help || is_brief_help) {
+      print_help();
+      exit(0);
+    }
+  }
 
   const char *const dataset_path = argv[1];
   if (dataset_path == NULL || *dataset_path == '\0') {
@@ -214,6 +260,13 @@ int main(int argc, char **argv) {
     // printf("Total time: %f seconds\n", total_time);
     // printf("\tReading time: %f seconds\n", read_time);
     // printf("\tScatter time: %f seconds\n", scatter_time);
+
+    char *const finalize_script_path = argv[3];
+    if (finalize_script_path != NULL && *finalize_script_path != '\0') {
+      call_finalize_script(finalize_script_path);
+    }
+
+    printf("Done!\n");
   }
 
   printf("Process %s completed\n", rank_str);

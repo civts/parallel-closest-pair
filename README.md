@@ -43,6 +43,45 @@ Their distance is:
 65.79513
 ```
 
+### Running the program
+
+#### Method 1: Github CI
+
+In order to run this program on the cluster, just push here on Github on the main branch. The CI will:
+
+- build the code
+
+- copy it in the cluster
+
+- start the job
+
+- notify us on telegram once it is finished
+
+Note that for this job to run successfully, the following secrets have to be present in the github repo:
+
+- `BOT_TOKEN`: The token of the telegram bot used for notifying that the job completed
+- `TELEGRAM_CHAT_ID`: The ID of the chat where the bot sends the updates
+- `UNITN_PASSWORD`: Unitn email
+- `UNITN_USERNAME`: Unitn password
+
+#### Method 2: Manual
+
+##### Getting the code to the cluster
+
+1. Ensure you can ping the cluster (`hpc2.unitn.it`). Otherwise you may need to connect to the VPN.
+
+1. Open a ssh connection to the cluster. You can do so by running `ssh hpc2.unitn.it -l mario.rossi@unitn.it`. Then note the location of your home directory on the cluster, given by the output of the `pwd` command (should be `/home/mario.rossi`).
+
+1. Copy the code to the cluster by either
+   1. Running on your machine
+      `scp -r -o "user=mario.rossi@unitn.it" ./path/to/the/code/on/your/machine hpc2.unitn.it:/home/mario.rossi/HPC_course`
+   1. Running on the cluster -in the target directory- `git clone https://github.com/civts/parallel-closest-pair`
+1. Compile the code by running (on the cluster) `module load mpich-3.2`, then `mpicc -o parallel_closest_points main.c -lm`
+
+##### Running the program
+
+Start a run of the program (job) by running on the cluster `qsub
+
 ## Dev environment setup 👨‍💻
 
 ### Option 1: Manual 🔨
