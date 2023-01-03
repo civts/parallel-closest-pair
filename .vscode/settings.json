@@ -45,8 +45,5 @@
     "**/.vscode",
     "**/.vscode/**"
   ],
-  "files.associations": {
-    "flake.lock": "json",
-  },
   "python.analysis.typeCheckingMode": "basic"
 }
