@@ -31,7 +31,7 @@ PointVec loadData(const char *path) {
 
   // Setup vector of points
   point_vec.length = n;
-  point_vec.points = malloc(n * sizeof(Point));
+  point_vec.points = (Point *)malloc(n * sizeof(Point));
 
   if (point_vec.points == NULL) {
     printf("Out of memory.\n"

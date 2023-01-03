@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-int main(const int argc, const char const *const *argv) {
+int main(const int argc, const char *const *const argv) {
   debugPrint("Started");
   int i;
   clock_t begin, end;

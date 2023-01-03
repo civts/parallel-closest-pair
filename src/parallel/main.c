@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-int main(int argc, char **argv) {
+int main(const int argc, char *const *const argv) {
   int comm_sz;
   int my_rank;
   // int n_points;
@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
 
   // If needed, print the help message
   for (i = 0; i < argc; i++) {
-    char *arg = argv[i];
+    const char *const arg = argv[i];
     bool is_long_help = arg == "--help";
     bool is_brief_help = arg == "-h";
     if (is_long_help || is_brief_help) {
