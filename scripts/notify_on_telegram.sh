@@ -1,5 +1,7 @@
 #! /usr/bin/env bash
 
+# This script is intended to be run by the CI.
+
 # The bot token and chat ID are populated by Github's CI.
 
 # Please, do not bother copying the token since this bot is used only for

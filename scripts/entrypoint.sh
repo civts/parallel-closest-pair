@@ -1,4 +1,7 @@
 #! /usr/bin/env bash
+
+# This script is intended to be run by the CI, on the cluster.
+
 NICKNAME=$(cat ./tag)
 NICKNAME_NICE=$(cut -d '_' -f 1 <<<"$NICKNAME")
 TRIGGER_INFO=$(cat ./run_trigger | tail -n +2)
