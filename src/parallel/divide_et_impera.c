@@ -1,13 +1,16 @@
-#include "../utils/utils.h"
+#include "./utils/points.h"
+#include <float.h>
 #include <stdlib.h>
 
 PairOfPoints getMinDistance(const Point *points, const int n) {
-  double min_d = distance(points[0], points[1]) * 2;
   PairOfPoints result;
-
+  int i, j;
   double d;
-  for (int i = 0; i < (n - 1); i++) {
-    for (int j = i + 1; j < n; j++) {
+
+  double min_d = distance(points[0], points[1]) * 2;
+
+  for (i = 0; i < (n - 1); i++) {
+    for (j = i + 1; j < n; j++) {
       d = distance(points[i], points[j]);
       if (d < min_d) {
         min_d = d;
@@ -23,13 +26,14 @@ PairOfPoints getMinDistance(const Point *points, const int n) {
 
 PairOfPoints getMinDistanceToMidY(Point *points, const int size,
                                   const PairOfPoints dist) {
+  int i, j;
   PairOfPoints min_d = dist;
 
   qsort(points, size, sizeof(Point), compareY);
 
-  for (int i = 0; i < size; ++i) {
-    for (int j = i + 1;
-         j < size && (points[j].y - points[i].y) < min_d.distance; j++) {
+  for (i = 0; i < size; ++i) {
+    for (j = i + 1; j < size && (points[j].y - points[i].y) < min_d.distance;
+         j++) {
       if (distance(points[i], points[j]) < min_d.distance) {
         min_d.distance = distance(points[i], points[j]);
         min_d.point1 = points[i];
@@ -42,7 +46,8 @@ PairOfPoints getMinDistanceToMidY(Point *points, const int size,
 }
 
 PairOfPoints detClosestPoints(Point *points, const int n) {
-  // Base case
+
+  // Base cases
   if (n <= 3) {
     return getMinDistance(points, n);
   }
@@ -61,8 +66,9 @@ PairOfPoints detClosestPoints(Point *points, const int n) {
   // Check points with distance from middle < d
   Point mid_set[n];
   int k = 0;
+  int i;
 
-  for (int i = 0; i < n; i++) {
+  for (i = 0; i < n; i++) {
     if (distance(points[i], mid_point) < d.distance) {
       mid_set[k] = points[i];
       k++;

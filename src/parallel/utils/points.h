@@ -1,5 +1,5 @@
-#ifndef __UTILS_H__
-#define __UTILS_H__
+#ifndef __POINTS_H__
+#define __POINTS_H__
 
 #include <math.h>
 #include <stdio.h>
@@ -43,9 +43,7 @@ double distance(const Point p1, const Point p2) {
 }
 
 // Returns the distance between the two given points, x coord
-double distance_x(const Point p1, const Point p2) {
-  return abs(p1.x - p2.x);
-}
+double distance_x(const Point p1, const Point p2) { return abs(p1.x - p2.x); }
 
 // Utility function to print to standard output only if we are debugging
 void debugPrint(const char *message) {

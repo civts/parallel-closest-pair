@@ -1,5 +1,7 @@
-#include "../utils/points_loader.c"
-#include "../utils/utils.h"
+#include "./utils/finalize.c"
+#include "./utils/points.h"
+#include "./utils/points_loader.c"
+#include "./utils/print_help.c"
 #include "divide_et_impera.c"
 #include <mpi.h>
 #include <stdbool.h>
@@ -7,45 +9,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
-#include <unistd.h>
-
-#define VERSION "0.0.1"
-
-// Calls the finalize script.
-// This function shall be called only by the main process
-void call_finalize_script(char *const script_path) {
-  pid_t child_pid = fork();
-  if (child_pid == 0) { // in child
-    printf("Ready to call final script %s\n", script_path);
-    char *const args[] = {script_path, NULL};
-    execvp(args[0], args);
-    printf("If we got here, we had some kind of error...\n");
-  } else if (child_pid < 0) {
-    printf("Could not inform the world of my completion\n");
-    printf("Will just terminate silently...\n");
-  }
-}
-
-// Prints the help message, with the instructions to use this program
-void print_help() {
-  printf("parallel_closest_points, v%s", VERSION);
-  printf("This program solves the closest pair of points problem.");
-  printf("In doing so, it uses the MPI library in order to divide the "
-         "computation between");
-  printf("multiple processes to speed it up.\n");
-  printf("Usage: parallel_closest_points [input_path] [output_path] "
-         "[[finalize_script_path]]");
-  printf("The input_path is the path to the input file. See the README of this "
-         "project for");
-  printf("the format.");
-  printf("The output_path is the path where the output files will be written.");
-  printf("The finalize_script_path is the path to a program to run once the "
-         "computation");
-  printf("has finished -for example, to notify of its completion-. This last "
-         "parameter is");
-  printf("OPTIONAL.");
-}
 
 int main(int argc, char **argv) {
   int comm_sz;

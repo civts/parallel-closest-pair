@@ -1,12 +1,12 @@
-#include "../utils/points_loader.c"
-#include "../utils/utils.h"
+#include "../parallel/utils/points.h"
+#include "../parallel/utils/points_loader.c"
 #include "divide_et_impera.c"
 #include "naive.c"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
-int main() {
+int main(const int argc, const char const *const *argv) {
   debugPrint("Started");
   int i;
   clock_t begin, end;
@@ -14,7 +14,7 @@ int main() {
   PairOfPoints closestPair;
 
   debugPrint("Reading the points from file");
-  const PointVec point_vec = loadData("../data/5k.txt");
+  const PointVec point_vec = loadData(argv[1]);
 
   debugPrint("Sorting the points based on x coordinate");
   qsort(point_vec.points, point_vec.length, sizeof(Point), compareX);

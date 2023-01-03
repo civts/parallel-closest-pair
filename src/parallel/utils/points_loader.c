@@ -1,4 +1,4 @@
-#include "utils.h"
+#include "points.h"
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
