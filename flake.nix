@@ -24,6 +24,7 @@
             glibc
             mpi
             clang #Required by xaver.clang-format
+            shfmt #Required by foxundermoon.shell-format
             (vscode-with-extensions.override {
               vscode = vscodium;
               vscodeExtensions = with vscode-extensions; [
@@ -33,6 +34,7 @@
                 #Formatters
                 xaver.clang-format
                 esbenp.prettier-vscode
+                foxundermoon.shell-format
                 #Nix specific
                 jnoortheen.nix-ide
               ] ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
