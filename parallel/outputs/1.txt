@@ -1,7 +1,0 @@
-Process 1
-Received total number of points (8)
-Local number of points: 2
-(1, 2)
-(3, 4)
-Local smallest distance: 2.83
-Sending local_d to process 0
