@@ -89,7 +89,7 @@ echo "Job finished correctly, all is good"
 zip -r outputs.zip $OUTPUT_DIR
 
 $(pwd)/notify_on_telegram.sh \
-"Job $NICKNAME_NICE finished 🧸.
+"Job $NICKNAME_NICE finished 🧸
 Its job id was $JOB_ID.
 Input: $INPUT_FILE.
 It was submitted $START.
