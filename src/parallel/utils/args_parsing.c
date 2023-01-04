@@ -1,3 +1,4 @@
+#include "finalize.c"
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -59,4 +60,14 @@ const char const *parse_output_path(const int argc,
     exit(1);
   }
   return output_path;
+}
+
+// Checks if this program was given a finalize script. If so, it calls it
+void check_if_we_have_a_finalize_script(const int argc,
+                                        const char *const *const argv) {
+  char *const finalize_script_path = argv[3];
+  if (finalize_script_path != NULL && *finalize_script_path != '\0' &&
+      argc >= 3) {
+    call_finalize_script(finalize_script_path);
+  }
 }
