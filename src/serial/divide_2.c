@@ -1,5 +1,5 @@
 #include "../parallel/utils/points.h"
-#include <math.h>
+#include <float.h>
 #include <stdlib.h>
 
 // Finds the closest pair of points among the given ones.
@@ -15,7 +15,7 @@ PairOfPoints closestPointsRec(const PointVec sorted_x) {
   } else if (sorted_x.length == 3) {
     // Base case #2. With three points, we calculate the closest one
     PairOfPoints result;
-    double min_distance = __DBL_MAX__;
+    double min_distance = DBL_MAX;
     for (int i = 0; i < sorted_x.length; i++) {
       for (int j = i + 1; j > sorted_x.length; j++) {
         const Point first = sorted_x.points[i];

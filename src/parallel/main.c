@@ -1,7 +1,9 @@
+#include "./utils/args_parsing.c"
 #include "./utils/finalize.c"
+#include "./utils/mpi.h"
+#include "./utils/output.h"
 #include "./utils/points.h"
 #include "./utils/points_loader.c"
-#include "./utils/print_help.c"
 #include "divide_et_impera.c"
 #include <mpi.h>
 #include <stdbool.h>
@@ -11,218 +13,155 @@
 #include <string.h>
 
 int main(const int argc, char *const *const argv) {
-  int comm_sz;
-  int my_rank;
-  // int n_points;
-  // int local_n;
-  // int levels;
-  int i;
   double total_time, read_time, scatter_time;
 
-  // PointVec point_vec;
-  // PointVec local_points;
-  PairOfPoints local_d;
-  // PairOfPoints recv_d;
+  PointVec all_input_points;
+  PairOfPoints local_d, recv_d;
 
-  // If needed, print the help message
-  for (i = 0; i < argc; i++) {
-    const char *const arg = argv[i];
-    bool is_long_help = arg == "--help";
-    bool is_brief_help = arg == "-h";
-    if (is_long_help || is_brief_help) {
-      print_help();
-      exit(0);
-    }
-  }
+  // Parse CLI arguments
+  print_help_if_needed(argc, argv);
+  const char *const dataset_path = parse_dataset_path(argc, argv);
+  const char *const output_path = parse_output_path(argc, argv);
 
-  const char *const dataset_path = argv[1];
-  if (dataset_path == NULL || *dataset_path == '\0') {
-    printf("Missing positional argument 1: the path to the dataset file. "
-           "Terminating\n");
-    exit(1);
-  }
-  const char *const output_path = argv[2];
-  if (output_path == NULL || *output_path == '\0') {
-    printf("Missing positional argument 2: the path to the output file. "
-           "Terminating\n");
-    exit(1);
-  }
-
+  int comm_sz;
+  int my_rank;
   // MPI initializations
   MPI_Init(NULL, NULL);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 
-  // total_time = -MPI_Wtime();
+  total_time = -MPI_Wtime();
 
-  // MPI_Status mpi_stat;
+  MPI_Status mpi_stat;
 
-  // // Create Point Datatype for MPI
-  // MPI_Datatype types_1[2] = {MPI_INT, MPI_INT};
-  // MPI_Datatype mpi_point_type;
-
-  // MPI_Aint offsets_1[2];
-  // offsets_1[0] = offsetof(Point, x);
-  // offsets_1[1] = offsetof(Point, y);
-  // const int blocklengths_1[2] = {1, 1};
-
-  // MPI_Type_create_struct(2, blocklengths_1, offsets_1, types_1,
-  //                        &mpi_point_type);
-  // MPI_Type_commit(&mpi_point_type);
-
-  // // Create PairOfPoints Datatype for MPI
-  // MPI_Datatype types_2[3] = {MPI_DOUBLE, mpi_point_type, mpi_point_type};
-  // MPI_Datatype mpi_pair_of_points_type;
-
-  // MPI_Aint offsets_2[3];
-  // offsets_2[0] = offsetof(PairOfPoints, distance);
-  // offsets_2[1] = offsetof(PairOfPoints, point1);
-  // offsets_2[2] = offsetof(PairOfPoints, point2);
-  // const int blocklengths_2[3] = {1, 1, 1};
-
-  // MPI_Type_create_struct(3, blocklengths_2, offsets_2, types_2,
-  //                        &mpi_pair_of_points_type);
-  // MPI_Type_commit(&mpi_pair_of_points_type);
+  // Create Point Datatype for MPI
+  MPI_Datatype mpi_point_type = create_point_datatype();
+  MPI_Datatype mpi_pair_of_points_type =
+      create_pair_of_points_datatype(mpi_point_type);
 
   // setup output file
-  int num_digits = 0;
-  int tmp_rank = my_rank;
-  do {
-    tmp_rank /= 10;
-    num_digits++;
-  } while (tmp_rank > 0);
-  char *rank_str = malloc(sizeof(char) * (num_digits + 1));
-  sprintf(rank_str, "%d.txt", my_rank);
+  const FILE *out_fp = setup_file(my_rank, output_path);
 
-  // FILE * out_fp = fopen(strcat(output_path, rank_str), "w+");
-  // fprintf(out_fp, "Process %d\n", my_rank);
-  // free(rank_str);
+  read_time = -MPI_Wtime();
+  if (my_rank == 0) {
 
-  // read_time = -MPI_Wtime();
-  // if (my_rank == 0) {
+    // load data
+    debugPrint("Reading the points from file");
+    all_input_points = loadData(dataset_path);
 
-  //   // load data
-  //   debugPrint("Reading the points from file");
-  //   point_vec = loadData(dataset_path);
+    debugPrint("Sorting the points based on x coordinate");
+    qsort(all_input_points.points, all_input_points.length, sizeof(Point),
+          compareX);
 
-  //   debugPrint("Sorting the points based on x coordinate");
-  //   qsort(point_vec.points, point_vec.length, sizeof(Point), compareX);
+    fprintf(out_fp, "Loaded and sorted %d points\n", all_input_points.length);
+  }
+  read_time += MPI_Wtime();
 
-  //   n_points = point_vec.length;
+  // Broadcast number of points to each process
+  MPI_Bcast(&all_input_points.length, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-  //   fprintf(out_fp, "Loaded and sorted %d points\n", n_points);
-  // }
-  // read_time += MPI_Wtime();
+  fprintf(out_fp, "Received total number of points (%d)\n",
+          all_input_points.length);
 
-  // // Broadcast number of points to each process
-  // MPI_Bcast(&n_points, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  scatter_time = -MPI_Wtime();
+  int *displs = (int *)malloc(comm_sz * sizeof(int));
+  int *local_count = (int *)malloc(comm_sz * sizeof(int));
 
-  // fprintf(out_fp, "Received total number of points (%d)\n", n_points);
+  int stride = all_input_points.length / comm_sz;
 
-  // scatter_time = -MPI_Wtime();
-  // int *displs = (int *)malloc(comm_sz * sizeof(int));
-  // int *scounts = (int *)malloc(comm_sz * sizeof(int));
+  // If all_input_points.length is not a multiple of comm_sz, last process takes
+  // the remaining points
+  for (int i = 0; i < comm_sz; ++i) {
+    displs[i] = i * stride;
+    if (i != (comm_sz - 1)) {
+      local_count[i] = stride;
+    } else {
+      local_count[i] = stride + (all_input_points.length % comm_sz);
+    }
+  }
 
-  // int stride = n_points / comm_sz;
+  int local_n = local_count[my_rank];
 
-  // // If n_points is not a multiple of comm_sz, last process takes the
-  // remaining
-  // // points
-  // for (i = 0; i < comm_sz; ++i) {
-  //   displs[i] = i * stride;
-  //   if (i != (comm_sz - 1)) {
-  //     scounts[i] = stride;
-  //   } else {
-  //     scounts[i] = stride + (n_points % comm_sz);
-  //   }
-  // }
+  PointVec local_points;
+  local_points.length = local_n;
+  local_points.points = (Point *)malloc(local_n * sizeof(Point));
 
-  // local_n = scounts[my_rank];
+  fprintf(out_fp, "Local number of points: %d\n", local_n);
 
-  // local_points.length = local_n;
-  // local_points.points = (Point *)malloc(local_n * sizeof(Point));
+  debugPrint("Sending points to each process");
 
-  // fprintf(out_fp, "Local number of points: %d\n", local_n);
+  MPI_Scatterv(all_input_points.points, local_count, displs, mpi_point_type,
+               local_points.points, local_n, mpi_point_type, 0, MPI_COMM_WORLD);
 
-  // debugPrint("Sending points to each process");
+  scatter_time += MPI_Wtime();
 
-  // MPI_Scatterv(point_vec.points, scounts, displs, mpi_point_type,
-  //              local_points.points, local_n, mpi_point_type, 0,
-  //              MPI_COMM_WORLD);
+  for (int i = 0; i < local_points.length; i++) {
+    fprintf(out_fp, "(%d, %d)\n", local_points.points[i].x,
+            local_points.points[i].y);
+  }
 
-  // scatter_time += MPI_Wtime();
+  if (local_points.length > 1) {
+    local_d = detClosestPointsWrapper(local_points);
+    fprintf(out_fp, "Local smallest distance: %.2f\n", local_d.distance);
+  } else {
+    local_d.distance = DBL_MAX;
+    fprintf(out_fp, "Less than 2 points: no distance\n");
+  }
 
-  // for (i = 0; i < local_points.length; i++) {
-  //   fprintf(out_fp, "(%d, %d)\n", local_points.points[i].x,
-  //           local_points.points[i].y);
-  // }
+  // Tree merge
+  int levels = (int)log2(comm_sz);
+  for (int i = 0; i < levels; i++) {
+    if (my_rank % (int)pow(2, i + 1) != 0 && my_rank != 0) {
+      int dest = my_rank - (int)pow(2, i);
+      if (dest >= 0) {
+        // Send to processes with rank (my_rank - 2^i)
+        MPI_Send(&local_d, 1, mpi_pair_of_points_type, dest, my_rank,
+                 MPI_COMM_WORLD);
 
-  // if (local_points.length > 1) {
-  //   local_d = detClosestPointsWrapper(local_points);
-  //   fprintf(out_fp, "Local smallest distance: %.2f\n", local_d.distance);
-  // } else {
-  //   local_d.distance = DBL_MAX;
-  //   fprintf(out_fp, "Less than 2 points: no distance\n");
-  // }
+        fprintf(out_fp, "Sending local_d to process %d\n", dest);
 
-  // // Tree merge
-  // levels = (int)log2(comm_sz);
-  // for (i = 0; i < levels; i++) {
-  //   if (my_rank % (int)pow(2, i + 1) != 0 && my_rank != 0) {
-  //     int dest = my_rank - (int)pow(2, i);
-  //     if (dest >= 0) {
-  //       // Send to processes with rank (my_rank - 2^i)
-  //       MPI_Send(&local_d, 1, mpi_pair_of_points_type, dest, my_rank,
-  //                MPI_COMM_WORLD);
+        // TODO send border points
+      }
+    } else {
+      // Receive local distance and merge
+      int src = my_rank + (int)pow(2, i);
+      MPI_Recv(&recv_d, 1, mpi_pair_of_points_type, src, src, MPI_COMM_WORLD,
+               &mpi_stat);
+      fprintf(
+          out_fp,
+          "Received local_d from process %d, %.2f, P1 (%d, %d), P2 (%d, %d)\n",
+          src, recv_d.distance, recv_d.point1.x, recv_d.point1.y,
+          recv_d.point2.x, recv_d.point2.y);
 
-  //       fprintf(out_fp, "Sending local_d to process %d\n", dest);
+      if (recv_d.distance < local_d.distance) {
+        local_d.distance = recv_d.distance;
+        local_d.point1 = recv_d.point1;
+        local_d.point2 = recv_d.point2;
+      }
 
-  //       // TODO send border points
-  //     }
-  //   } else {
-  //     // Receive local distance and merge
-  //     int src = my_rank + (int)pow(2, i);
-  //     MPI_Recv(&recv_d, 1, mpi_pair_of_points_type, src, src, MPI_COMM_WORLD,
-  //              &mpi_stat);
-  //     fprintf(
-  //         out_fp,
-  //         "Received local_d from process %d, %.2f, P1 (%d, %d), P2 (%d,
-  //         %d)\n", src, recv_d.distance, recv_d.point1.x, recv_d.point1.y,
-  //         recv_d.point2.x, recv_d.point2.y);
+      fprintf(out_fp, "Local_d: %.2f, P1 (%d, %d), P2 (%d, %d)\n",
+              local_d.distance, local_d.point1.x, local_d.point1.y,
+              local_d.point2.x, local_d.point2.y);
 
-  //     if (recv_d.distance < local_d.distance) {
-  //       local_d.distance = recv_d.distance;
-  //       local_d.point1 = recv_d.point1;
-  //       local_d.point2 = recv_d.point2;
-  //     }
+      // TODO receive and merge border points
+    }
+  }
 
-  //     fprintf(out_fp, "Local_d: %.2f, P1 (%d, %d), P2 (%d, %d)\n",
-  //             local_d.distance, local_d.point1.x, local_d.point1.y,
-  //             local_d.point2.x, local_d.point2.y);
-
-  //     // TODO receive and merge border points
-  //   }
-  // }
-
-  // // Free memory
-  // free(displs);
-  // free(scounts);
-  // free(local_points.points);
-  // // free(point_vec.points);
+  // Free memory
+  free(displs);
+  free(local_count);
+  free(local_points.points);
+  // free(point_vec.points);
+  close_file(out_fp);
 
   total_time += MPI_Wtime();
   if (my_rank == 0) {
-    char *filename =
-        malloc(sizeof(char) * (strlen(output_path) + strlen(rank_str) + 1));
-    strcpy(filename, output_path);
-    strcat(filename, rank_str);
-    FILE *out_fp = fopen(filename, "w+");
-    // printf("Final distance: %f P1 (%d, %d)  P2 (%d, %d)\n", local_d.distance,
-    //        local_d.point1.x, local_d.point1.y, local_d.point2.x,
-    //        local_d.point2.y);
-    // printf("Total time: %f seconds\n", total_time);
-    // printf("\tReading time: %f seconds\n", read_time);
-    // printf("\tScatter time: %f seconds\n", scatter_time);
+    printf("Final distance: %f P1 (%d, %d)  P2 (%d, %d)\n", local_d.distance,
+           local_d.point1.x, local_d.point1.y, local_d.point2.x,
+           local_d.point2.y);
+    printf("Total time: %f seconds\n", total_time);
+    printf("\tReading time: %f seconds\n", read_time);
+    printf("\tScatter time: %f seconds\n", scatter_time);
 
     char *const finalize_script_path = argv[3];
     if (finalize_script_path != NULL && *finalize_script_path != '\0') {
@@ -232,7 +171,7 @@ int main(const int argc, char *const *const argv) {
     printf("Done!\n");
   }
 
-  printf("Process %s completed\n", rank_str);
+  printf("Process %d   completed\n", my_rank);
   MPI_Finalize();
   return 0;
 }
