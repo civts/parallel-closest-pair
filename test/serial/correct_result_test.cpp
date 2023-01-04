@@ -2,7 +2,7 @@
 
 extern "C" {
 #include "../../src/parallel/utils/points.h"
-#include "../../src/serial/divide_2.c"
+#include "../../src/serial/divide_et_impera.c"
 }
 
 // Testing that it finds the right closest point in a small dataset
@@ -21,7 +21,7 @@ TEST(Serial, CorrectResult) {
   input.points[6] = {0, 1};
   input.points[7] = {7, 7};
 
-  PairOfPoints result = closestPoints(input);
+  PairOfPoints result = closest_points(input);
   PairOfPoints expectedResult;
   expectedResult.point1 = {5, 5};
   expectedResult.point2 = {5, 6};

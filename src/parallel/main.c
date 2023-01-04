@@ -1,10 +1,11 @@
+#include "../serial/divide_et_impera.c"
 #include "./utils/args_parsing.c"
 #include "./utils/finalize.c"
 #include "./utils/mpi.h"
 #include "./utils/output.h"
 #include "./utils/points.h"
 #include "./utils/points_loader.c"
-#include "divide_et_impera.c"
+#include <float.h>
 #include <mpi.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -96,7 +97,7 @@ int main(const int argc, const char *const *const argv) {
 
   PairOfPoints local_best;
   if (local_points.length > 1) {
-    local_best = detClosestPointsWrapper(local_points);
+    local_best = closest_points(local_points);
     fprintf(out_fp, "Local smallest distance: %.2f\n", local_best.distance);
   } else {
     local_best.distance = DBL_MAX;

@@ -1,80 +1,118 @@
+#ifndef DIVIDE
+#define DIVIDE
 #include "../parallel/utils/points.h"
+#include "naive.c"
 #include <stdlib.h>
 
-PairOfPoints getMinDistance(const Point *points, const int n) {
-  double min_d = distance(points[0], points[1]) * 2;
-  PairOfPoints result;
+// Declaring closest_points_rec now since it and closest_points_divide are
+// mutually recursive
 
-  double d;
-  for (int i = 0; i < (n - 1); i++) {
-    for (int j = i + 1; j < n; j++) {
-      d = distance(points[i], points[j]);
-      if (d < min_d) {
-        min_d = d;
-        result.point1 = points[i];
-        result.point2 = points[j];
+PairOfPoints closest_points_rec(const PointVec sorted_x);
+
+// Returns the closest pair of points using the divide et impera method.
+// The input points MUST be sorted by ascending X coordinate
+static inline PairOfPoints closest_points_divide(const PointVec sorted_x) {
+  // Split the points in half along the X axis
+  int half = sorted_x.length / 2;
+  int remaining_length = sorted_x.length - half;
+  double middle_point =
+      (sorted_x.points[half - 1].x + sorted_x.points[half].x + 0.0) / 2.0;
+  PointVec left_half;
+  left_half.length = half;
+  left_half.points = sorted_x.points;
+  PointVec right_half;
+  right_half.length = remaining_length;
+  right_half.points = &sorted_x.points[half];
+  // Get the closest ones of each half
+  PairOfPoints closest_left = closest_points_rec(left_half);
+  PairOfPoints closest_right = closest_points_rec(right_half);
+  PairOfPoints result = closest_left.distance < closest_right.distance
+                            ? closest_left
+                            : closest_right;
+  // Calculate delta and the width of the band of points to compare next
+  double delta = result.distance;
+  int points_in_the_band_count = 0;
+  double left_band_limit = middle_point - delta;
+  double right_band_limit = middle_point + delta;
+  // Populate the band of points
+  for (int i = 0; i < sorted_x.length; i++) {
+    int x_coordinate = sorted_x.points[i].x;
+    if (x_coordinate < left_band_limit) {
+      continue;
+    } else if (x_coordinate > right_band_limit) {
+      break;
+    } else {
+      points_in_the_band_count++;
+    }
+  }
+  Point *points_in_the_band =
+      (Point *)malloc(sizeof(Point) * points_in_the_band_count);
+  int j = 0;
+  for (int i = 0; i < sorted_x.length; i++) {
+    int x_coordinate = sorted_x.points[i].x;
+    if (x_coordinate < left_band_limit) {
+      continue;
+    } else if (x_coordinate > right_band_limit) {
+      break;
+    } else {
+      points_in_the_band[j] = sorted_x.points[i];
+      j++;
+    }
+  }
+  // Sort the points in the band accoring to the y coordinate
+  qsort(points_in_the_band, points_in_the_band_count, sizeof(Point), compareY);
+  // Compare their distances with the minimum distance
+  for (int i = 0; i < points_in_the_band_count; i++) {
+    // 7 because you can have at maximum other 6 points in the region
+    for (int j = 0; j < 6; j++) {
+      int k = i + 1 + j;
+      if (k < points_in_the_band_count) {
+        double distance_now =
+            distance(points_in_the_band[i], points_in_the_band[k]);
+        if (distance_now < result.distance) {
+          result.distance = distance_now;
+          result.point1 = points_in_the_band[i];
+          result.point2 = points_in_the_band[k];
+        }
       }
     }
   }
-
-  result.distance = min_d;
+  free(points_in_the_band);
   return result;
 }
 
-PairOfPoints getMinDistanceToMidY(Point *points, const int size,
-                                  const PairOfPoints dist) {
-  PairOfPoints min_d = dist;
-
-  qsort(points, size, sizeof(Point), compareY);
-
-  for (int i = 0; i < size; ++i) {
-    for (int j = i + 1;
-         j < size && (points[j].y - points[i].y) < min_d.distance; j++) {
-      if (distance(points[i], points[j]) < min_d.distance) {
-        min_d.distance = distance(points[i], points[j]);
-        min_d.point1 = points[i];
-        min_d.point2 = points[j];
-      }
-    }
+// Finds the closest pair of points among the given ones.
+// The input points MUST be sorted by ascending x coordinate
+PairOfPoints closest_points_rec(const PointVec sorted_x) {
+  if (sorted_x.length == 2) {
+    // Base case #1. With two points, we return their distance
+    return points_to_pair(sorted_x.points[0], sorted_x.points[1]);
+  } else if (sorted_x.length == 3) {
+    // Base case #2. With three points, we calculate the closest one
+    return closest_points_bruteforce(sorted_x);
+  } else {
+    return closest_points_divide(sorted_x);
   }
-
-  return min_d;
 }
 
-PairOfPoints detClosestPoints(Point *points, const int n) {
-  // Base case
-  if (n <= 3) {
-    return getMinDistance(points, n);
+PairOfPoints closest_points(PointVec points) {
+  // Sort the points
+  qsort(points.points, points.length, sizeof(Point), compareX);
+  // Find the closest pair
+  PairOfPoints result = closest_points_rec(points);
+  // Make it so that point 1 is the leftmost of the pair,
+  // or the lower one if the x is the same
+  if (result.point1.x > result.point2.x) {
+    Point tmp = result.point1;
+    result.point1 = result.point2;
+    result.point2 = tmp;
+  } else if (result.point1.x == result.point2.x &&
+             result.point1.y > result.point2.y) {
+    Point tmp = result.point1;
+    result.point1 = result.point2;
+    result.point2 = tmp;
   }
-
-  PairOfPoints dl, dr, d, d_mid;
-
-  int mid = n / 2;
-  Point mid_point = points[mid];
-
-  // Calculate left and right minimum distances
-  dl = detClosestPoints(points, mid);
-  dr = detClosestPoints(points + mid, n - mid);
-
-  d = dl.distance < dr.distance ? dl : dr;
-
-  // Check points with distance from middle < d
-  Point mid_set[n];
-  int k = 0;
-
-  for (int i = 0; i < n; i++) {
-    if (distance(points[i], mid_point) < d.distance) {
-      mid_set[k] = points[i];
-      k++;
-    }
-  }
-
-  d_mid = getMinDistanceToMidY(mid_set, k, d);
-
-  return d.distance < d_mid.distance ? d : d_mid;
+  return result;
 }
 
-PairOfPoints detClosestPointsWrapper(PointVec point_vec) {
-  qsort(point_vec.points, point_vec.length, sizeof(Point), compareX);
-  return detClosestPoints(point_vec.points, point_vec.length);
-}
+#endif

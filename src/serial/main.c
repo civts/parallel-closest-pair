@@ -1,6 +1,5 @@
 #include "../parallel/utils/points.h"
 #include "../parallel/utils/points_loader.c"
-#include "divide_2.c"
 #include "divide_et_impera.c"
 #include "naive.c"
 #include <stdio.h>
@@ -27,7 +26,7 @@ int main(const int argc, const char *const *const argv) {
 
   debugPrint("Getting the closest points with naive algorithm");
   begin = clock();
-  closestPair = naiveClosestPoints(point_vec);
+  closestPair = closest_points_bruteforce(point_vec);
   end = clock();
   time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
 
@@ -41,7 +40,7 @@ int main(const int argc, const char *const *const argv) {
 
   debugPrint("Getting the closest points with divide et impera algorithm");
   begin = clock();
-  closestPair = closestPoints(point_vec);
+  closestPair = closest_points(point_vec);
   end = clock();
   time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
 

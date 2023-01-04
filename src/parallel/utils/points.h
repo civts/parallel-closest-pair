@@ -1,5 +1,5 @@
 #ifndef __POINTS_H__
-#define __POINTS_H__
+#define __POINTS_H__ 1
 
 #include <math.h>
 #include <stdio.h>
@@ -17,8 +17,7 @@ typedef struct {
 } PointVec;
 
 typedef struct {
-  double distance; // TODO: test if it is better to include this field or to
-                   // calculate it when needed
+  double distance;
   Point point1;
   Point point2;
 } PairOfPoints;
@@ -44,6 +43,15 @@ double distance(const Point p1, const Point p2) {
 
 // Returns the distance between the two given points, x coord
 double distance_x(const Point p1, const Point p2) { return abs(p1.x - p2.x); }
+
+// Creates a pair from two points
+PairOfPoints points_to_pair(Point point1, Point point2) {
+  PairOfPoints result;
+  result.point1 = point1;
+  result.point2 = point2;
+  result.distance = distance(result.point1, result.point2);
+  return result;
+}
 
 // Utility function to print to standard output only if we are debugging
 void debugPrint(const char *message) {
