@@ -1,3 +1,5 @@
+#ifndef __MPI_H__
+#define __MPI_H__
 #include "points.h"
 #include <mpi.h>
 
@@ -33,3 +35,5 @@ MPI_Datatype create_pair_of_points_datatype(const MPI_Datatype mpi_point_type) {
   MPI_Type_commit(&mpi_pair_of_points_type);
   return mpi_pair_of_points_type;
 }
+
+#endif

@@ -1,4 +1,7 @@
-#include "finalize.c"
+#ifndef __ARG_PARGING_H__
+#define __ARG_PARGING_H__
+
+#include "finalize.h"
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -71,3 +74,5 @@ void check_if_we_have_a_finalize_script(const int argc,
     call_finalize_script(finalize_script_path);
   }
 }
+
+#endif

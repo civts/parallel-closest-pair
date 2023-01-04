@@ -1,5 +1,5 @@
 #include "../parallel/utils/points.h"
-#include "../parallel/utils/points_loader.c"
+#include "../parallel/utils/points_loader.h"
 #include "divide_et_impera.c"
 #include "naive.c"
 #include <stdio.h>

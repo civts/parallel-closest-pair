@@ -1,3 +1,6 @@
+#ifndef __POINTS_LOADER_H__
+#define __POINTS_LOADER_H__ 1
+
 #include "points.h"
 #include <limits.h>
 #include <stdio.h>
@@ -60,3 +63,5 @@ PointVec loadData(const char *path) {
 
   return point_vec;
 }
+
+#endif

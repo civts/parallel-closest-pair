@@ -1,5 +1,5 @@
-#ifndef __FINALIZE__
-#define __FINALIZE__
+#ifndef __FINALIZE_H__
+#define __FINALIZE_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,7 +11,7 @@
 // This function shall be called only by the main process
 void call_finalize_script(const char *const script_path) {
   pid_t child_pid = fork();
-  char *sp = malloc(sizeof(char) * (strlen(script_path) + 1));
+  char *sp = (char *)malloc(sizeof(char) * (strlen(script_path) + 1));
   strcpy(sp, script_path);
   if (child_pid == 0) { // in child
     printf("Ready to call final script %s\n", sp);

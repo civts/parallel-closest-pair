@@ -1,10 +1,10 @@
 #include "../serial/divide_et_impera.c"
-#include "./utils/args_parsing.c"
-#include "./utils/finalize.c"
+#include "./utils/args_parsing.h"
+#include "./utils/finalize.h"
 #include "./utils/mpi.h"
 #include "./utils/output.h"
 #include "./utils/points.h"
-#include "./utils/points_loader.c"
+#include "./utils/points_loader.h"
 #include <float.h>
 #include <mpi.h>
 #include <stdbool.h>

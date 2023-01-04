@@ -1,3 +1,6 @@
+#ifndef __OUTPUT_H__
+#define __OUTPUT_H__ 1
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -38,3 +41,5 @@ FILE *setup_file(const int rank, const char *const output_path) {
 }
 
 void close_file(FILE *fp) { fclose(fp); }
+
+#endif
