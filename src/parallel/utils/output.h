@@ -20,7 +20,7 @@ FILE *setup_file(const int rank, const char *const output_path) {
   int extra_for_slash = output_path[out_length - 1] == '/' ? 0 : 1;
   char *out = malloc(sizeof(char) *
                      (out_length + extra_for_slash + strlen(rank_str) + 1));
-  out = "";
+  out[0] = '\0';
   strcat(out, output_path);
   if (extra_for_slash == 1) {
     strcat(out, "/");

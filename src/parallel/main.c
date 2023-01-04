@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-int main(const int argc, char *const *const argv) {
+int main(const int argc, const char *const *const argv) {
   PointVec all_input_points;
 
   // Parse CLI arguments
@@ -35,7 +35,7 @@ int main(const int argc, char *const *const argv) {
       create_pair_of_points_datatype(mpi_point_type);
 
   // setup output file
-  const FILE *out_fp = setup_file(my_rank, output_path);
+  FILE *out_fp = setup_file(my_rank, output_path);
 
   double read_time = -MPI_Wtime();
   if (my_rank == 0) {
