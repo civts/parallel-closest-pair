@@ -1,4 +1,4 @@
-#include "./utils/points.h"
+#include "points.h"
 #include <mpi.h>
 
 MPI_Datatype create_point_datatype() {
