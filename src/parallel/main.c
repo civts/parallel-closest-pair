@@ -90,15 +90,19 @@ int main(const int argc, const char *const *const argv) {
 
   scatter_time += MPI_Wtime();
 
-  for (int i = 0; i < local_points.length; i++) {
-    fprintf(out_fp, "(%d, %d)\n", local_points.points[i].x,
-            local_points.points[i].y);
-  }
+  fprintf(out_fp, "First point: (%d, %d)\n", local_points.points[0].x,
+          local_points.points[0].y);
+  fprintf(out_fp, "Last point: (%d, %d)\n",
+          local_points.points[local_points.length - 1].x,
+          local_points.points[local_points.length - 1].y);
 
   PairOfPoints local_best;
   if (local_points.length > 1) {
     local_best = closest_points(local_points);
-    fprintf(out_fp, "Local smallest distance: %.2f\n", local_best.distance);
+    fprintf(out_fp,
+            "\nLocal smallest distance: %.2f\nBetween (%d, %d) and (%d, %d)\n",
+            local_best.distance, local_best.point1.x, local_best.point1.y,
+            local_best.point2.x, local_best.point2.y);
   } else {
     local_best.distance = DBL_MAX;
     fprintf(out_fp, "Less than 2 points: no distance\n");
