@@ -2,6 +2,7 @@
 #define __MPI_H__
 #include "points.h"
 #include <mpi.h>
+#include <stddef.h>
 
 MPI_Datatype create_point_datatype() {
   MPI_Datatype types_1[2] = {MPI_INT, MPI_INT};
