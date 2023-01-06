@@ -119,5 +119,6 @@ jobs:
                ./entrypoint.sh
               "
       - name: Stop VPN
+        if: always()
         run: |
           kill -15 ${{ steps.connect_to_vpn.outputs.vpn_pid }}
