@@ -69,6 +69,7 @@ chmod +x $TARGET_PARALLEL_SCRIPT
 echo "Submitting the job"
 # Execute the script
 JOB_ID=$(qsub $TARGET_PARALLEL_SCRIPT)
+JOB_NUMBER=$(echo $JOB_ID | sed 's/\..*//')
 if [ $? ]; then
   echo "Launched 🚀"
 else
@@ -87,10 +88,10 @@ cat >$FINALIZE_SCRIPT <<EOL
 
 cd $(pwd)
 
-JOB_RESULT_QSTAT=$(qstat $JOB_ID -H | tail -n 1)
-EXIT_CODE=$(echo \$JOB_RESULT_QSTAT | awk '{print $10;}')
-TIME_AVAILABLE=$(echo \$JOB_RESULT_QSTAT | awk '{print $9;}')
-TIME_ELAPSED=$(echo \$JOB_RESULT_QSTAT | awk '{print $11;}')
+JOB_RESULT_QSTAT=\$(qstat $JOB_ID -H | tail -n 1)
+EXIT_CODE=\$(echo \$JOB_RESULT_QSTAT | awk '{print \$10;}')
+TIME_AVAILABLE=\$(echo \$JOB_RESULT_QSTAT | awk '{print \$9;}')
+TIME_ELAPSED=\$(echo \$JOB_RESULT_QSTAT | awk '{print \$11;}')
 JOB_INFO="Its job id was $JOB_ID
 Input: $INPUT_FILE
 It was submitted $START
@@ -101,7 +102,10 @@ $TRIGGER_INFO"
 # Ensure the output diretory exists, even if empty
 mkdir -p $OUTPUT_DIR || true
 
-zip -r outputs.zip $OUTPUT_DIR "$TARGET_PARALLEL_SCRIPT.e*" "$TARGET_PARALLEL_SCRIPT.o*"
+zip -r outputs.zip \
+  "$OUTPUT_DIR" \
+  "$TARGET_PARALLEL_SCRIPT.e$JOB_NUMBER" \
+  "$TARGET_PARALLEL_SCRIPT.o$JOB_NUMBER"
 
 case \$EXIT_CODE in
   "S")
@@ -118,7 +122,10 @@ The time limit was \$TIME_AVAILABLE minutes."
     MESSAGE="finished with an unknown status: \$EXIT_CODE 👾" ;;
 esac
 
-$(pwd)/notify_on_telegram.sh "Job $NICKNAME_NICE \$MESSAGE\n\n\$JOB_INFO" --file outputs.zip
+$(pwd)/notify_on_telegram.sh \
+"Job $NICKNAME_NICE \$MESSAGE
+
+$JOB_INFO" --file outputs.zip
 
 for A in 'BOT_TOKEN' 'TELEGRAM_CHAT_ID'; do 
   sed -i "s/\$A=.*/\$A=redacted/g" $FINALIZE_SCRIPT
