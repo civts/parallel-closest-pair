@@ -88,8 +88,14 @@ cat >$FINALIZE_SCRIPT <<EOL
 
 cd $(pwd)
 
-JOB_RESULT_QSTAT=\$(qstat $JOB_ID -H | tail -n 1)
-EXIT_CODE=\$(echo \$JOB_RESULT_QSTAT | awk '{print \$10;}')
+EXIT_CODE="R"
+
+while [[ "\$EXIT_CODE" == "R" ]] do
+  sleep 10
+  JOB_RESULT_QSTAT=\$(qstat $JOB_ID -H | tail -n 1)
+  EXIT_CODE=\$(echo \$JOB_RESULT_QSTAT | awk '{print \$10;}')
+done
+
 TIME_AVAILABLE=\$(echo \$JOB_RESULT_QSTAT | awk '{print \$9;}')
 TIME_ELAPSED=\$(echo \$JOB_RESULT_QSTAT | awk '{print \$11;}')
 JOB_INFO="Its job id was $JOB_ID
