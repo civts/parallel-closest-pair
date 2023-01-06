@@ -15,6 +15,7 @@
 
 int main(const int argc, const char *const *const argv) {
   PointVec all_input_points;
+  int i;
 
   // Parse CLI arguments
   print_help_if_needed(argc, argv);
@@ -66,7 +67,7 @@ int main(const int argc, const char *const *const argv) {
 
   // If all_input_points.length is not a multiple of comm_sz, last process takes
   // the remaining points
-  for (int i = 0; i < comm_sz; ++i) {
+  for (i = 0; i < comm_sz; ++i) {
     displs[i] = i * stride;
     if (i != (comm_sz - 1)) {
       local_count[i] = stride;
@@ -110,7 +111,7 @@ int main(const int argc, const char *const *const argv) {
 
   // Tree merge
   int levels = (int)log2(comm_sz);
-  for (int i = 0; i < levels; i++) {
+  for (i = 0; i < levels; i++) {
     if (my_rank % (int)pow(2, i + 1) != 0 && my_rank != 0) {
       int dest = my_rank - (int)pow(2, i);
       if (dest >= 0) {

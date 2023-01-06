@@ -31,7 +31,8 @@ void print_help() {
 // Checks if the user included the help flag in the CLI arguments given to this
 // program. If so, prints the help menu and exit normally
 void print_help_if_needed(const int argc, const char *const *const argv) {
-  for (int i = 0; i < argc; i++) {
+  int i;
+  for (i = 0; i < argc; i++) {
     const char *const arg = argv[i];
     bool is_long_help = arg == "--help";
     bool is_brief_help = arg == "-h";

@@ -35,7 +35,8 @@ static inline PairOfPoints closest_points_divide(const PointVec sorted_x) {
   double left_band_limit = middle_point - delta;
   double right_band_limit = middle_point + delta;
   // Populate the band of points
-  for (int i = 0; i < sorted_x.length; i++) {
+  int i;
+  for (i = 0; i < sorted_x.length; i++) {
     int x_coordinate = sorted_x.points[i].x;
     if (x_coordinate < left_band_limit) {
       continue;
@@ -48,7 +49,7 @@ static inline PairOfPoints closest_points_divide(const PointVec sorted_x) {
   Point *points_in_the_band =
       (Point *)malloc(sizeof(Point) * points_in_the_band_count);
   int j = 0;
-  for (int i = 0; i < sorted_x.length; i++) {
+  for (i = 0; i < sorted_x.length; i++) {
     int x_coordinate = sorted_x.points[i].x;
     if (x_coordinate < left_band_limit) {
       continue;
@@ -62,9 +63,9 @@ static inline PairOfPoints closest_points_divide(const PointVec sorted_x) {
   // Sort the points in the band accoring to the y coordinate
   qsort(points_in_the_band, points_in_the_band_count, sizeof(Point), compareY);
   // Compare their distances with the minimum distance
-  for (int i = 0; i < points_in_the_band_count; i++) {
+  for (i = 0; i < points_in_the_band_count; i++) {
     // 7 because you can have at maximum other 6 points in the region
-    for (int j = 0; j < 6; j++) {
+    for (j = 0; j < 6; j++) {
       int k = i + 1 + j;
       if (k < points_in_the_band_count) {
         double distance_now =

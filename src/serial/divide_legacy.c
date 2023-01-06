@@ -6,8 +6,9 @@ PairOfPoints getMinDistance(const Point *points, const int n) {
   PairOfPoints result;
 
   double d;
-  for (int i = 0; i < (n - 1); i++) {
-    for (int j = i + 1; j < n; j++) {
+  int i, j;
+  for (i = 0; i < (n - 1); i++) {
+    for (j = i + 1; j < n; j++) {
       d = distance(points[i], points[j]);
       if (d < min_d) {
         min_d = d;
@@ -27,9 +28,10 @@ PairOfPoints getMinDistanceToMidY(Point *points, const int size,
 
   qsort(points, size, sizeof(Point), compareY);
 
-  for (int i = 0; i < size; ++i) {
-    for (int j = i + 1;
-         j < size && (points[j].y - points[i].y) < min_d.distance; j++) {
+  int i, j;
+  for (i = 0; i < size; ++i) {
+    for (j = i + 1; j < size && (points[j].y - points[i].y) < min_d.distance;
+         j++) {
       if (distance(points[i], points[j]) < min_d.distance) {
         min_d.distance = distance(points[i], points[j]);
         min_d.point1 = points[i];
@@ -62,7 +64,8 @@ PairOfPoints detClosestPoints(Point *points, const int n) {
   Point mid_set[n];
   int k = 0;
 
-  for (int i = 0; i < n; i++) {
+  int i;
+  for (i = 0; i < n; i++) {
     if (distance(points[i], mid_point) < d.distance) {
       mid_set[k] = points[i];
       k++;

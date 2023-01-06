@@ -7,8 +7,9 @@
 PairOfPoints closest_points_bruteforce(const PointVec input_points) {
   PairOfPoints result;
   double min_distance = DBL_MAX;
-  for (int i = 0; i < input_points.length; i++) {
-    for (int j = i + 1; j < input_points.length; j++) {
+  int i, j;
+  for (i = 0; i < input_points.length; i++) {
+    for (j = i + 1; j < input_points.length; j++) {
       const Point first = input_points.points[i];
       const Point second = input_points.points[j];
       double distance_now = distance(first, second);
