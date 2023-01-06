@@ -19,7 +19,8 @@ void print_help() {
   printf("The input_path is the path to the input file. See the README of this "
          "project for");
   printf("the format.");
-  printf("The output_path is the path where the output files will be written.");
+  printf("The output_path is the path to the directory where the output files "
+         "will be\nwritten.");
   printf("The finalize_script_path is the path to a program to run once the "
          "computation");
   printf("has finished -for example, to notify of its completion-. This last "

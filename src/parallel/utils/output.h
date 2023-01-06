@@ -29,14 +29,30 @@ FILE *setup_file(const int rank, const char *const output_path) {
     strcat(out, "/");
   }
 
-  int _ = mkdir(out, 0666);
+  int _ = mkdir(out, 0766);
 
   // Copy rank_str at the end of the current output path
   strcat(out, rank_str);
 
-  FILE *out_fp = fopen(out, "w+");
+  // Get absolute path to teh output file
+  // In Unix, the paths should be less than 4096 characters
+  char *path = (char *)malloc(4097 * sizeof(char));
+  realpath(out, path);
+  if (path == NULL) {
+    printf("Could resolve path to output file: %s. Exiting\n", path);
+    exit(1);
+  }
+
+  // Open the output file in append mode
+  FILE *out_fp = fopen(path, "w+");
+  if (out_fp == NULL) {
+    printf("Could not open the output file %s. Exiting\n", path);
+    exit(1);
+  }
   fprintf(out_fp, "Process %d\n", rank);
+  free(path);
   free(rank_str);
+
   return out_fp;
 }
 
