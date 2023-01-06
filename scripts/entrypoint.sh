@@ -55,10 +55,13 @@ OUTPUT_PATH=$OUTPUT_PATH
 mkdir \$OUTPUT_PATH
 
 # Run the job
-mpiexec -n ${N_PROCESSES} \$EXECUTABLE "\$INPUT_PATH" "\$OUTPUT_PATH" ${FINALIZE_SCRIPT}
+mpiexec -n ${N_PROCESSES} \$EXECUTABLE "\$INPUT_PATH" "\$OUTPUT_PATH"
 
 # Unload MPI environment
 module unload mpich-3.2
+
+# Run the finalize script
+${FINALIZE_SCRIPT}
 
 EOL
 chmod +x $TARGET_PARALLEL_SCRIPT
@@ -84,25 +87,44 @@ cat >$FINALIZE_SCRIPT <<EOL
 
 cd $(pwd)
 
-echo "Job finished correctly, all is good"
-
-zip -r outputs.zip $OUTPUT_DIR
-
-$(pwd)/notify_on_telegram.sh \
-"Job $NICKNAME_NICE finished 🧸
-Its job id was $JOB_ID.
-Input: $INPUT_FILE.
-It was submitted $START.
+JOB_RESULT_QSTAT=$(qstat $JOB_ID -H | tail -n 1)
+EXIT_CODE=$(echo \$JOB_RESULT_QSTAT | awk '{print $10;}')
+TIME_AVAILABLE=$(echo \$JOB_RESULT_QSTAT | awk '{print $9;}')
+TIME_ELAPSED=$(echo \$JOB_RESULT_QSTAT | awk '{print $11;}')
+JOB_INFO="Its job id was $JOB_ID
+Input: $INPUT_FILE
+It was submitted $START
 
 It was tirggered by:
-$TRIGGER_INFO" \
---file outputs.zip
+$TRIGGER_INFO"
+
+# Ensure the output diretory exists, even if empty
+mkdir -p $OUTPUT_DIR || true
+
+zip -r outputs.zip $OUTPUT_DIR "$TARGET_PARALLEL_SCRIPT.e*" "$TARGET_PARALLEL_SCRIPT.o*"
+
+case \$EXIT_CODE in
+  "S")
+    MESSAGE="finished successfully🧸";;
+  "F")
+    if [[ "\$TIME_AVAILABLE" == "\$TIME_ELAPSED" ]]; then
+      MESSAGE="timed out 🦖💥\nThe time limit was \$TIME_AVAILABLE minutes."
+    else
+      MESSAGE="Failed for an unknown reason 🤐💥
+It ran for \$TIME_ELAPSED minutes.
+The time limit was \$TIME_AVAILABLE minutes."
+    fi;;
+  *)
+    MESSAGE="finished with an unknown status: \$EXIT_CODE 👾" ;;
+esac
+
+$(pwd)/notify_on_telegram.sh "Job $NICKNAME_NICE \$MESSAGE\n\n\$JOB_INFO" --file outputs.zip
 
 for A in 'BOT_TOKEN' 'TELEGRAM_CHAT_ID'; do 
-  sed -i "s/$A=.*/$A=redacted/g" $FINALIZE_SCRIPT
+  sed -i "s/\$A=.*/\$A=redacted/g" $FINALIZE_SCRIPT
 done
 
-rm outputs.zip
+rm outputs.zip || true
 EOL
 
 chmod +x $FINALIZE_SCRIPT
@@ -111,10 +133,9 @@ chmod +x $FINALIZE_SCRIPT
   "A new job started on the cluster 🌠
 Codename: $NICKNAME_NICE
 Job_id: $JOB_ID
-Input: $INPUT_FILE.
+Input: $INPUT_FILE
 
 Triggered by:
-$TRIGGER_INFO
-  "
+$TRIGGER_INFO"
 
 echo -n $JOB_ID >job_id
