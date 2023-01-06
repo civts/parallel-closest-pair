@@ -39,19 +39,22 @@ int main(const int argc, const char *const *const argv) {
   // setup output file
   FILE *out_fp = setup_file(my_rank, output_path);
 
-  double read_time = -MPI_Wtime();
+  double read_time;
   if (my_rank == 0) {
+    read_time = -MPI_Wtime();
+
     // load data
     debugPrint("Reading the points from file");
     all_input_points = loadData(dataset_path);
+
+    read_time += MPI_Wtime();
+
+    debugPrint("Sorting the points based on x coordinate");
+    qsort(all_input_points.points, all_input_points.length, sizeof(Point),
+          compareX);
+
+    fprintf(out_fp, "Loaded and sorted %d points\n", all_input_points.length);
   }
-  read_time += MPI_Wtime();
-
-  debugPrint("Sorting the points based on x coordinate");
-  qsort(all_input_points.points, all_input_points.length, sizeof(Point),
-        compareX);
-
-  fprintf(out_fp, "Loaded and sorted %d points\n", all_input_points.length);
 
   // Broadcast number of points to each process
   MPI_Bcast(&all_input_points.length, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -155,11 +158,11 @@ int main(const int argc, const char *const *const argv) {
   free(displs);
   free(local_count);
   free(local_points.points);
-  free(all_input_points.points);
   close_file(out_fp);
 
   total_time += MPI_Wtime();
   if (my_rank == 0) {
+    free(all_input_points.points);
     printf("Final distance: %f P1 (%d, %d)  P2 (%d, %d)\n", local_best.distance,
            local_best.point1.x, local_best.point1.y, local_best.point2.x,
            local_best.point2.y);
