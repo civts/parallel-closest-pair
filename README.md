@@ -84,7 +84,20 @@ Start a run of the program (job) by running on the cluster `qsub
 
 ## Dev environment setup 👨‍💻
 
-### Option 1: Manual 🔨
+### Option 1: With Nix ❄️
+
+With [Nix](https://nixos.org) and [direnv](https://direnv.net) you can get exactly our setup by running this script:
+
+```bash
+git clone https://github.com/civts/parallel-closest-pair #Downloads this repository
+cd parallel-closest-pair
+direnv allow #Fetches all the dependencies (and VSCodium)
+codium . #Launches VSCodium
+```
+
+Then open the file you want to debug and press `F5` to launch it.
+
+### Option 2: Manual 🔨
 
 1. Install the following packets:
 
@@ -103,19 +116,6 @@ Start a run of the program (job) by running on the cluster `qsub
 1. Clone this repo, open it in the editor
 
 1. Open the file you want to debug and press `F5` to launch it.
-
-### Option 2: With Nix ❄️
-
-With [Nix](https://nixos.org) and [direnv](https://direnv.net) you can get exactly our setup by running this script:
-
-```bash
-git clone https://github.com/civts/parallel-closest-pair #Downloads this repository
-cd parallel-closest-pair
-direnv allow #Fetches all the dependencies (and VSCodium)
-codium . #Launches VSCodium
-```
-
-Then open the file you want to debug and press `F5` to launch it.
 
 ## Troubleshooting
 
