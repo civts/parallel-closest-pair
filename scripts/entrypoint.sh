@@ -90,7 +90,7 @@ cd $(pwd)
 
 EXIT_CODE="R"
 
-while [[ "\$EXIT_CODE" == "R" ]] do
+while [[ "\$EXIT_CODE" == "R" ]]; do
   sleep 10
   JOB_RESULT_QSTAT=\$(qstat $JOB_ID -H | tail -n 1)
   EXIT_CODE=\$(echo \$JOB_RESULT_QSTAT | awk '{print \$10;}')
