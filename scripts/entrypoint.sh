@@ -57,6 +57,7 @@ mkdir \$OUTPUT_PATH
 
 echo "Starting the finalize script 🕰"
 nohup $FINALIZE_SCRIPT 1> $(pwd)/finalize_stdout.log 2> $(pwd)/finalize_stderr.log &
+disown
 
 echo "Running the mpiexec command"
 
