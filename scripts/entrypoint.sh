@@ -139,7 +139,7 @@ $(pwd)/notify_on_telegram.sh \
 $JOB_INFO" --file outputs.zip
 
 for A in 'BOT_TOKEN' 'TELEGRAM_CHAT_ID'; do 
-  sed -i "s/\$A=.*/\$A=redacted/g" $FINALIZE_SCRIPT
+  sed -i "s/\$A=.*/\$A=redacted/g" $(pwd)/notify_on_telegram.sh
 done
 
 rm outputs.zip || true
