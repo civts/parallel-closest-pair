@@ -54,17 +54,24 @@ OUTPUT_PATH=$OUTPUT_PATH
 
 mkdir \$OUTPUT_PATH
 
+echo "Running the mpiexec command"
+
 # Run the job
 mpiexec -n ${N_PROCESSES} \$EXECUTABLE "\$INPUT_PATH" "\$OUTPUT_PATH"
 
+echo "Unloading MPI module"
 # Unload MPI environment
 module unload mpich-3.2
 
+echo "Running the finalize script"
 # Run the finalize script
 ${FINALIZE_SCRIPT} &
 disown
 
+echo "All done in $TARGET_PARALLEL_SCRIPT"
+
 EOL
+
 chmod +x $TARGET_PARALLEL_SCRIPT
 
 echo "Submitting the job"
