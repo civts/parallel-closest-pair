@@ -55,6 +55,9 @@ OUTPUT_PATH=$OUTPUT_PATH
 
 mkdir \$OUTPUT_PATH
 
+echo "Starting the finalize script 🕰"
+nohup $FINALIZE_SCRIPT 1> $(pwd)/finalize_stdout.log 2> $(pwd)/finalize_stderr.log &
+
 echo "Running the mpiexec command"
 
 # Run the job
@@ -149,9 +152,6 @@ rm outputs.zip || true
 EOL
 
 chmod +x $FINALIZE_SCRIPT
-echo "Starting the finalize script 🕰"
-$FINALIZE_SCRIPT &
-disown
 
 ./notify_on_telegram.sh \
   "A new job started on the cluster 🌠
