@@ -55,10 +55,6 @@ OUTPUT_PATH=$OUTPUT_PATH
 
 mkdir \$OUTPUT_PATH
 
-echo "Starting the finalize script 🕰"
-nohup $FINALIZE_SCRIPT 1> $(pwd)/finalize_stdout.log 2> $(pwd)/finalize_stderr.log &
-disown
-
 echo "Running the mpiexec command"
 
 # Run the job
@@ -164,5 +160,9 @@ Triggered by:
 $TRIGGER_INFO"
 
 echo -n $JOB_ID >job_id
+
+echo "Starting the finalize script 🕰"
+nohup $FINALIZE_SCRIPT 1>"$(pwd)/finalize_stdout.log" 2>"$(pwd)/finalize_stderr.log" &
+disown
 
 echo "Farewell 👋"
