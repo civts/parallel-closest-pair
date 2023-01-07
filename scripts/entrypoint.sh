@@ -21,6 +21,7 @@ ensure_home_is_not_full() {
 
 echo "Starting 🏃"
 
+echo "Checking that the home directory is not full 🏨"
 ensure_home_is_not_full
 
 TARGET_PARALLEL_SCRIPT="./parallel.sh"
@@ -62,11 +63,6 @@ mpiexec -n ${N_PROCESSES} \$EXECUTABLE "\$INPUT_PATH" "\$OUTPUT_PATH"
 echo "Unloading MPI module"
 # Unload MPI environment
 module unload mpich-3.2
-
-echo "Running the finalize script"
-# Run the finalize script
-${FINALIZE_SCRIPT} &
-disown
 
 echo "All done in $TARGET_PARALLEL_SCRIPT"
 
@@ -153,6 +149,9 @@ rm outputs.zip || true
 EOL
 
 chmod +x $FINALIZE_SCRIPT
+echo "Starting the finalize script 🕰"
+$FINALIZE_SCRIPT &
+disown
 
 ./notify_on_telegram.sh \
   "A new job started on the cluster 🌠
@@ -164,3 +163,5 @@ Triggered by:
 $TRIGGER_INFO"
 
 echo -n $JOB_ID >job_id
+
+echo "Farewell 👋"
