@@ -61,7 +61,8 @@ mpiexec -n ${N_PROCESSES} \$EXECUTABLE "\$INPUT_PATH" "\$OUTPUT_PATH"
 module unload mpich-3.2
 
 # Run the finalize script
-${FINALIZE_SCRIPT}
+${FINALIZE_SCRIPT} &
+disown
 
 EOL
 chmod +x $TARGET_PARALLEL_SCRIPT
@@ -81,17 +82,21 @@ else
     --loud
   exit 1
 fi
+
 START=$(date)
+INTERVAL_SECONDS=10
+MAX_CHECKS=$(((MAX_MINUTES + 2) * (60 / INTERVAL_SECONDS)))
 
 cat >$FINALIZE_SCRIPT <<EOL
 #! /usr/bin/env bash
 
 cd $(pwd)
 
+I=0
 EXIT_CODE="R"
-
-while [[ "\$EXIT_CODE" == "R" ]]; do
-  sleep 10
+while [[ "\$EXIT_CODE" == "R" && \$I -le $MAX_CHECKS ]]; do
+  sleep $INTERVAL_SECONDS
+  I=\$((I + 1))
   JOB_RESULT_QSTAT=\$(qstat $JOB_ID -H | tail -n 1)
   EXIT_CODE=\$(echo \$JOB_RESULT_QSTAT | awk '{print \$10;}')
 done
