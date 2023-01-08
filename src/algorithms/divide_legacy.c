@@ -1,4 +1,4 @@
-#include "../parallel/utils/points.h"
+#include "../utils/points.h"
 #include <stdlib.h>
 
 PairOfPoints getMinDistance(const Point *points, const int n) {
