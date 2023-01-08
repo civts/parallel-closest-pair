@@ -126,19 +126,29 @@ case \$EXIT_CODE in
     if [[ "\$TIME_AVAILABLE" == "\$TIME_ELAPSED" ]]; then
       MESSAGE="timed out 🦖💥\nThe time limit was \$TIME_AVAILABLE minutes."
     else
-      MESSAGE="finished successfully 🧸"
+      OUT_FILE=${OUTPUT_DIR}-1.txt
+      if [[ -f "\$OUT_FILE" ]]; then
+        MIN_DIST=\$( cat "\$OUT_FILE" | tail -n 1)
+        MESSAGE="finished successfully 🧸\n\$MIN_DIST"
+      else
+        MESSAGE="Failed for an unknown reason 🤐💥
+ 
+It ran for \$TIME_ELAPSED minutes.
+The time limit was \$TIME_AVAILABLE minutes."
+      fi
+      echo $MESSAGE
     fi;;
   *)
     MESSAGE="finished with an unknown status: \$EXIT_CODE 👾
-
+ 
 It ran for \$TIME_ELAPSED minutes.
 The time limit was \$TIME_AVAILABLE minutes" ;;
 esac
 
 $(pwd)/notify_on_telegram.sh \
 "Job $NICKNAME_NICE \$MESSAGE
-
-$JOB_INFO" --file outputs.zip
+ 
+\$JOB_INFO" --file outputs.zip
 
 for A in 'BOT_TOKEN' 'TELEGRAM_CHAT_ID'; do 
   sed -i "s/\$A=.*/\$A=redacted/g" $(pwd)/notify_on_telegram.sh
