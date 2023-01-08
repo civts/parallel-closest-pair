@@ -1,6 +1,6 @@
 #ifndef NAIVE
 #define NAIVE
-#include "../parallel/utils/points.h"
+#include "../utils/points.h"
 #include <float.h>
 
 // Returns the closest points in the given vector. Time complexity: (n^2)/2

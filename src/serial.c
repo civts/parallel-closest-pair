@@ -1,7 +1,7 @@
-#include "../parallel/utils/points.h"
-#include "../parallel/utils/points_loader.h"
-#include "divide_et_impera.c"
-#include "naive.c"
+#include "./algorithms/divide_et_impera.c"
+#include "./algorithms/naive.c"
+#include "./utils/points.h"
+#include "./utils/points_loader.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>

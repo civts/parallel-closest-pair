@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "../../src/parallel/utils/points.h"
-#include "../../src/serial/divide_et_impera.c"
+#include "../../src/algorithms/divide_et_impera.c"
+#include "../../src/utils/points.h"
 }
 
 // Testing that it finds the right closest point in a small dataset

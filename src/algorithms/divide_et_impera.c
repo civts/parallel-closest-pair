@@ -1,6 +1,6 @@
 #ifndef DIVIDE
 #define DIVIDE
-#include "../parallel/utils/points.h"
+#include "../utils/points.h"
 #include "naive.c"
 #include <stdlib.h>
 
