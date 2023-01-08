@@ -18,7 +18,7 @@ jobs:
         run: sudo apt-get install -qy mpich cmake
       - name: Compile the main executable
         run: |
-          cd src/parallel
+          cd src/
           mpicc main.c -lm
       - name: Run the tests
         run: ./scripts/test.sh
@@ -103,11 +103,11 @@ jobs:
           CODE_DIR=${{steps.copy_to_cluster.outputs.CODE_DIR}}
           sshpass -e \
             ssh -l "${{secrets.UNITN_USERNAME}}" hpc2.unitn.it \
-              "cd $CODE_DIR/src/parallel
+              "cd $CODE_DIR/src/
                module load mpich-3.2
                mpicc -o parallel_closest_points main.c -lm
                module unload mpich-3.2
-               mv $CODE_DIR/src/parallel/parallel_closest_points ${{steps.copy_to_cluster.outputs.RUN_DIR}}/
+               mv $CODE_DIR/src/parallel_closest_points ${{steps.copy_to_cluster.outputs.RUN_DIR}}/
               "
       - name: Run the entrypoint
         env:
