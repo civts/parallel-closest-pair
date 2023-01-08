@@ -213,11 +213,16 @@ int main(const int argc, const char *const *const argv) {
       MPI_Send(&count_array, 2, MPI_INT, dest, my_rank, MPI_COMM_WORLD);
 
       // Send border points
-      // TODO: merge in one MPI send since the receiver already has the count
-      MPI_Send(left_band_points.points, points_in_left_band, mpi_point_type,
-               dest, my_rank, MPI_COMM_WORLD);
-      MPI_Send(right_band_points.points, points_in_right_band, mpi_point_type,
-               dest, my_rank, MPI_COMM_WORLD);
+      int total_points_to_send = points_in_left_band + points_in_right_band;
+      Point *all_border_points = malloc(sizeof(Point) * (total_points_to_send));
+      check_not_failed_or_exit(all_border_points, "all_border_points");
+      memcpy(all_border_points, left_band_points.points,
+             points_in_left_band * sizeof(Point));
+      memcpy(&all_border_points[points_in_left_band], right_band_points.points,
+             points_in_right_band * sizeof(Point));
+
+      MPI_Send(all_border_points, total_points_to_send, mpi_point_type, dest,
+               my_rank, MPI_COMM_WORLD);
 
       free(left_band_points.points);
       free(right_band_points.points);
@@ -263,12 +268,18 @@ int main(const int argc, const char *const *const argv) {
           malloc(sizeof(Point) * right_band_len),
       };
       check_not_failed_or_exit(right_band.points, "right_band.points");
+      int total_border_points = right_band_len + central_left_band_len;
+      Point *points_to_receive = malloc(sizeof(Point) * total_border_points);
+      check_not_failed_or_exit(points_to_receive, "points_to_receive");
 
       // Receive centrel-left and right points from other process
-      MPI_Recv(central_left_band.points, central_left_band_len, mpi_point_type,
-               src, src, MPI_COMM_WORLD, &mpi_stat);
-      MPI_Recv(right_band.points, right_band_len, mpi_point_type, src, src,
+      MPI_Recv(points_to_receive, total_border_points, mpi_point_type, src, src,
                MPI_COMM_WORLD, &mpi_stat);
+      memcpy(central_left_band.points, points_to_receive,
+             central_left_band_len * sizeof(Point));
+      memcpy(right_band.points, &points_to_receive[central_left_band_len],
+             right_band_len * sizeof(Point));
+      free(points_to_receive);
 
       // Populate our central-right band
       int central_right_band_len = 0;
