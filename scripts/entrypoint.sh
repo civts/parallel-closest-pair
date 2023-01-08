@@ -106,7 +106,7 @@ done
 
 TIME_AVAILABLE=\$(echo \$JOB_RESULT_QSTAT | awk '{print \$9;}')
 TIME_ELAPSED=\$(echo \$JOB_RESULT_QSTAT | awk '{print \$11;}')
-JOB_INFO="Its job id was $JOB_ID
+JOB_INFO="The job id was $JOB_ID
 Input: $INPUT_FILE
 It was submitted $START
 
@@ -129,7 +129,9 @@ case \$EXIT_CODE in
       OUT_FILE=${OUTPUT_DIR}-1.txt
       if [[ -f "\$OUT_FILE" ]]; then
         MIN_DIST=\$( cat "\$OUT_FILE" | tail -n 1)
-        MESSAGE="finished successfully 🧸\n\$MIN_DIST"
+        MESSAGE="finished successfully 🧸
+ 
+\$MIN_DIST"
       else
         MESSAGE="Failed for an unknown reason 🤐💥
  
@@ -146,9 +148,7 @@ The time limit was \$TIME_AVAILABLE minutes" ;;
 esac
 
 $(pwd)/notify_on_telegram.sh \
-"Job $NICKNAME_NICE \$MESSAGE
- 
-\$JOB_INFO" --file outputs.zip
+"Job $NICKNAME_NICE \$MESSAGE\$JOB_INFO" --file outputs.zip
 
 for A in 'BOT_TOKEN' 'TELEGRAM_CHAT_ID'; do 
   sed -i "s/\$A=.*/\$A=redacted/g" $(pwd)/notify_on_telegram.sh
