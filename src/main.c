@@ -4,6 +4,7 @@
 #include "./utils/output.h"
 #include "./utils/points.h"
 #include "./utils/points_loader.h"
+#include "./utils/utils.h"
 #include "algorithms/divide_et_impera.c"
 #include <float.h>
 #include <mpi.h>
@@ -65,6 +66,8 @@ int main(const int argc, const char *const *const argv) {
   double scatter_time = -MPI_Wtime();
   int *displs = (int *)malloc(number_of_processes * sizeof(int));
   int *local_count = (int *)malloc(number_of_processes * sizeof(int));
+  check_not_failed_or_exit(displs, "displs");
+  check_not_failed_or_exit(local_count, "local_count");
 
   int stride = all_input_points.length / number_of_processes;
 
@@ -84,6 +87,7 @@ int main(const int argc, const char *const *const argv) {
   PointVec local_points;
   local_points.length = local_n;
   local_points.points = (Point *)malloc(local_n * sizeof(Point));
+  check_not_failed_or_exit(local_points.points, "local_pointspoints");
 
   fprintf(out_fp, "Local number of points: %d\n", local_n);
 
@@ -172,10 +176,15 @@ int main(const int argc, const char *const *const argv) {
           points_in_left_band,
           malloc(points_in_left_band * sizeof(Point)),
       };
+      check_not_failed_or_exit(left_band_points.points,
+                               "left_band_points.points");
       PointVec right_band_points = {
           points_in_right_band,
           malloc(points_in_right_band * sizeof(Point)),
       };
+      check_not_failed_or_exit(right_band_points.points,
+                               "right_band_points.points");
+
       int j = 0;
       for (i = 0; i < local_points.length; i++) {
         Point current_point = local_points.points[i];
@@ -247,10 +256,13 @@ int main(const int argc, const char *const *const argv) {
           central_left_band_len,
           malloc(sizeof(Point) * central_left_band_len),
       };
+      check_not_failed_or_exit(central_left_band.points,
+                               "central_left_band.points");
       PointVec right_band = {
           right_band_len,
           malloc(sizeof(Point) * right_band_len),
       };
+      check_not_failed_or_exit(right_band.points, "right_band.points");
 
       // Receive centrel-left and right points from other process
       MPI_Recv(central_left_band.points, central_left_band_len, mpi_point_type,
@@ -275,6 +287,7 @@ int main(const int argc, const char *const *const argv) {
           central_band_len,
           malloc(sizeof(Point) * central_band_len),
       };
+      check_not_failed_or_exit(central_band.points, "central_band.points");
       memcpy(central_band.points,
              &local_points.points[local_points.length - central_right_band_len],
              central_right_band_len * sizeof(Point));
@@ -304,6 +317,7 @@ int main(const int argc, const char *const *const argv) {
           left_band_len,
           malloc(left_band_len * sizeof(Point)),
       };
+      check_not_failed_or_exit(left_band.points, "left_band.points");
       memcpy(left_band.points, local_points.points,
              left_band_len * sizeof(Point));
 
@@ -320,6 +334,7 @@ int main(const int argc, const char *const *const argv) {
         }
       }
       Point *new_right_band_points = malloc(new_right_band_len * sizeof(Point));
+      check_not_failed_or_exit(new_right_band_points, "new_right_band_points");
       memcpy(new_right_band_points,
              &right_band.points[right_band.length - new_right_band_len],
              new_right_band_len * sizeof(Point));
@@ -330,6 +345,7 @@ int main(const int argc, const char *const *const argv) {
       // Local points can now become just the two bands
       int new_local_points_len = left_band.length + right_band.length;
       Point *new_local_points = malloc(new_local_points_len * sizeof(Point));
+      check_not_failed_or_exit(new_local_points, "new_local_points");
       memcpy(new_local_points, left_band.points,
              left_band.length * sizeof(Point));
       memcpy(&new_local_points[left_band.length], right_band.points,
