@@ -22,11 +22,11 @@ int main(const int argc, const char *const *const argv) {
   const char *const dataset_path = parse_dataset_path(argc, argv);
   const char *const output_path = parse_output_path(argc, argv);
 
-  int comm_sz;
+  int number_of_processes;
   int my_rank;
   // MPI initializations
   MPI_Init(NULL, NULL);
-  MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
+  MPI_Comm_size(MPI_COMM_WORLD, &number_of_processes);
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 
   double total_time = -MPI_Wtime();
@@ -63,19 +63,19 @@ int main(const int argc, const char *const *const argv) {
           all_input_points.length);
 
   double scatter_time = -MPI_Wtime();
-  int *displs = (int *)malloc(comm_sz * sizeof(int));
-  int *local_count = (int *)malloc(comm_sz * sizeof(int));
+  int *displs = (int *)malloc(number_of_processes * sizeof(int));
+  int *local_count = (int *)malloc(number_of_processes * sizeof(int));
 
-  int stride = all_input_points.length / comm_sz;
+  int stride = all_input_points.length / number_of_processes;
 
   // If all_input_points.length is not a multiple of comm_sz, last process takes
   // the remaining points
-  for (i = 0; i < comm_sz; ++i) {
+  for (i = 0; i < number_of_processes; ++i) {
     displs[i] = i * stride;
-    if (i != (comm_sz - 1)) {
+    if (i != (number_of_processes - 1)) {
       local_count[i] = stride;
     } else {
-      local_count[i] = stride + (all_input_points.length % comm_sz);
+      local_count[i] = stride + (all_input_points.length % number_of_processes);
     }
   }
 
@@ -113,22 +113,35 @@ int main(const int argc, const char *const *const argv) {
   }
 
   // Tree merge
-  int levels = (int)log2(comm_sz);
-  for (i = 0; i < levels; i++) {
-    if (my_rank % (int)pow(2, i + 1) != 0 && my_rank != 0) {
-      int dest = my_rank - (int)pow(2, i);
-      if (dest >= 0) {
-        // Send to processes with rank (my_rank - 2^i)
-        MPI_Send(&local_best, 1, mpi_pair_of_points_type, dest, my_rank,
-                 MPI_COMM_WORLD);
+  int levels = ceil(log2(number_of_processes));
+  int current_level;
+  bool already_sent = false;
+  for (current_level = 0; current_level < levels; current_level++) {
 
-        fprintf(out_fp, "Sending local_best to process %d\n", dest);
+    if (already_sent) {
+      break;
+    }
 
-        // TODO send border points
-      }
+    bool not_process_zero = my_rank != 0;
+    bool am_i_sender_on_this_level =
+        my_rank % (int)pow(2, current_level + 1) != 0;
+    bool am_i_a_sender = am_i_sender_on_this_level && not_process_zero;
+
+    if (am_i_a_sender) {
+      int dest = my_rank - (int)pow(2, current_level);
+
+      // Send to processes with rank (my_rank - 2^i)
+      MPI_Send(&local_best, 1, mpi_pair_of_points_type, dest, my_rank,
+               MPI_COMM_WORLD);
+      already_sent = true;
+
+      fprintf(out_fp, "Sending local_best to process %d\n", dest);
+
+      // TODO send border points
+
     } else {
       // Receive local distance and merge
-      int src = my_rank + (int)pow(2, i);
+      int src = my_rank + (int)pow(2, current_level);
       MPI_Status mpi_stat;
       PairOfPoints recv_d;
 
