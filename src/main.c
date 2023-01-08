@@ -103,10 +103,11 @@ int main(const int argc, const char *const *const argv) {
   PairOfPoints local_best;
   if (local_points.length > 1) {
     local_best = closest_points(local_points);
-    fprintf(out_fp,
-            "\nLocal smallest distance: %.2f\nBetween (%d, %d) and (%d, %d)\n",
-            local_best.distance, local_best.point1.x, local_best.point1.y,
-            local_best.point2.x, local_best.point2.y);
+    fprintf(
+        out_fp,
+        "\nLocal smallest distance: %.2f\nBetween (%d, %d) and (%d, %d)\n\n",
+        local_best.distance, local_best.point1.x, local_best.point1.y,
+        local_best.point2.x, local_best.point2.y);
   } else {
     local_best.distance = DBL_MAX;
     fprintf(out_fp, "Less than 2 points: no distance\n");
@@ -198,39 +199,151 @@ int main(const int argc, const char *const *const argv) {
         }
       }
 
+      // Send border count
+      int count_array[] = {points_in_left_band, points_in_right_band};
+      MPI_Send(&count_array, 2, MPI_INT, dest, my_rank, MPI_COMM_WORLD);
+
       // Send border points
-      MPI_Send(&left_band_points.points, points_in_left_band, mpi_point_type,
+      // TODO: merge in one MPI send since the receiver already has the count
+      MPI_Send(left_band_points.points, points_in_left_band, mpi_point_type,
                dest, my_rank, MPI_COMM_WORLD);
-      MPI_Send(&right_band_points.points, points_in_right_band, mpi_point_type,
+      MPI_Send(right_band_points.points, points_in_right_band, mpi_point_type,
                dest, my_rank, MPI_COMM_WORLD);
 
       free(left_band_points.points);
       free(right_band_points.points);
     } else {
-      // Receive local distance and merge
+      // Receive best distance that the other process found, and merge with our
+      // result
+
       int src = my_rank + (int)pow(2, current_level);
       MPI_Status mpi_stat;
-      PairOfPoints recv_d;
+      PairOfPoints partial_best;
 
-      MPI_Recv(&recv_d, 1, mpi_pair_of_points_type, src, src, MPI_COMM_WORLD,
-               &mpi_stat);
+      MPI_Recv(&partial_best, 1, mpi_pair_of_points_type, src, src,
+               MPI_COMM_WORLD, &mpi_stat);
       fprintf(out_fp,
               "Received local_best from process %d, %.2f, P1 (%d, %d), P2 (%d, "
               "%d)\n",
-              src, recv_d.distance, recv_d.point1.x, recv_d.point1.y,
-              recv_d.point2.x, recv_d.point2.y);
+              src, partial_best.distance, partial_best.point1.x,
+              partial_best.point1.y, partial_best.point2.x,
+              partial_best.point2.y);
 
-      if (recv_d.distance < local_best.distance) {
-        local_best.distance = recv_d.distance;
-        local_best.point1 = recv_d.point1;
-        local_best.point2 = recv_d.point2;
+      // Update minimum distance based on the received one
+      if (partial_best.distance < local_best.distance) {
+        local_best.distance = partial_best.distance;
+        local_best.point1 = partial_best.point1;
+        local_best.point2 = partial_best.point2;
       }
 
-      fprintf(out_fp, "local_best: %.2f, P1 (%d, %d), P2 (%d, %d)\n",
+      // Receive border points
+      int border_count[2];
+      MPI_Recv(&border_count, 2, MPI_INT, src, src, MPI_COMM_WORLD, &mpi_stat);
+
+      int central_left_band_len = border_count[0];
+      int right_band_len = border_count[1];
+
+      PointVec central_left_band = {
+          central_left_band_len,
+          malloc(sizeof(Point) * central_left_band_len),
+      };
+      PointVec right_band = {
+          right_band_len,
+          malloc(sizeof(Point) * right_band_len),
+      };
+
+      // Receive centrel-left and right points from other process
+      MPI_Recv(central_left_band.points, central_left_band_len, mpi_point_type,
+               src, src, MPI_COMM_WORLD, &mpi_stat);
+      MPI_Recv(right_band.points, right_band_len, mpi_point_type, src, src,
+               MPI_COMM_WORLD, &mpi_stat);
+
+      // Populate our central-right band
+      int central_right_band_len = 0;
+      int central_left_margin_x = central_left_band.points[0].x;
+      for (i = local_points.length - 1; i >= 0; i--) {
+        Point p = local_points.points[i];
+        double distance_now = central_left_margin_x - p.x;
+        if (distance_now < local_best.distance) {
+          central_right_band_len++;
+        } else {
+          break;
+        }
+      }
+      int central_band_len = central_right_band_len + central_left_band_len;
+      PointVec central_band = {
+          central_band_len,
+          malloc(sizeof(Point) * central_band_len),
+      };
+      memcpy(central_band.points,
+             &local_points.points[local_points.length - central_right_band_len],
+             central_right_band_len * sizeof(Point));
+
+      // Finish populating the central band by adding the central-left points
+      memcpy(&central_band.points[central_right_band_len], &central_left_band,
+             central_left_band_len * sizeof(Point));
+      free(central_left_band.points);
+
+      // Check the band for closer points (eventually updating local best)
+      band_update_result(central_band, &local_best);
+      free(central_band.points);
+
+      // Compute left band
+      int left_band_len = 0;
+      int left_margin_x = local_points.points[0].x;
+      for (i = 0; i < local_points.length; i++) {
+        Point p = local_points.points[i];
+        double distance_now = p.x - left_margin_x;
+        if (distance_now < local_best.distance) {
+          left_band_len++;
+        } else {
+          break;
+        }
+      }
+      PointVec left_band = {
+          left_band_len,
+          malloc(left_band_len * sizeof(Point)),
+      };
+      memcpy(left_band.points, local_points.points,
+             left_band_len * sizeof(Point));
+
+      // Filter the right band by removing points beyond the current best
+      // distance
+      int new_right_band_len = 0;
+      int right_margin_x = right_band.points[right_band_len - 1].x;
+      for (i = right_band_len - 1; i >= 0; i--) {
+        double distance = right_margin_x - right_band.points[i].x;
+        if (distance < local_best.distance) {
+          new_right_band_len++;
+        } else {
+          break;
+        }
+      }
+      Point *new_right_band_points = malloc(new_right_band_len * sizeof(Point));
+      memcpy(new_right_band_points,
+             &right_band.points[right_band.length - new_right_band_len],
+             new_right_band_len * sizeof(Point));
+      free(right_band.points);
+      right_band.length = new_right_band_len;
+      right_band.points = new_right_band_points;
+
+      // Local points can now become just the two bands
+      int new_local_points_len = left_band.length + right_band.length;
+      Point *new_local_points = malloc(new_local_points_len * sizeof(Point));
+      memcpy(new_local_points, left_band.points,
+             left_band.length * sizeof(Point));
+      memcpy(&new_local_points[left_band.length], right_band.points,
+             right_band.length * sizeof(Point));
+
+      free(left_band.points);
+      free(right_band.points);
+      free(local_points.points);
+      local_points.points = new_local_points;
+      local_points.length = new_local_points_len;
+
+      fprintf(out_fp, "New local_best: %.2f, P1 (%d, %d), P2 (%d, %d)\n\n",
               local_best.distance, local_best.point1.x, local_best.point1.y,
               local_best.point2.x, local_best.point2.y);
-
-      // TODO receive and merge border points
     }
   }
 
@@ -238,7 +351,6 @@ int main(const int argc, const char *const *const argv) {
   free(displs);
   free(local_count);
   free(local_points.points);
-  close_file(out_fp);
 
   total_time += MPI_Wtime();
   if (my_rank == 0) {
@@ -250,12 +362,21 @@ int main(const int argc, const char *const *const argv) {
     printf("Reading time: %f seconds\n", read_time);
     printf("Scatter time: %f seconds\n", scatter_time);
 
+    fprintf(out_fp, "Final distance: %f P1 (%d, %d)  P2 (%d, %d)\n",
+            local_best.distance, local_best.point1.x, local_best.point1.y,
+            local_best.point2.x, local_best.point2.y);
+    fprintf(out_fp, "Total time: %f seconds\n", total_time);
+    fprintf(out_fp, "Reading time: %f seconds\n", read_time);
+    fprintf(out_fp, "Scatter time: %f seconds\n", scatter_time);
+
     check_if_we_have_a_finalize_script(argc, argv);
 
-    printf("Done!\n");
+    printf("All done!\n");
   }
 
-  printf("Process %d   completed\n", my_rank);
+  close_file(out_fp);
+
+  printf("Process %d completed\n", my_rank);
   MPI_Finalize();
   return 0;
 }
