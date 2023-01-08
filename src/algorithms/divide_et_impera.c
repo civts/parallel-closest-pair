@@ -9,6 +9,30 @@
 
 PairOfPoints closest_points_rec(const PointVec sorted_x);
 
+void band_update_result(PointVec band, PairOfPoints *result) {
+  Point *points_in_the_band = band.points;
+  int points_in_the_band_count = band.length;
+  // Sort the points in the band accoring to the y coordinate
+  qsort(points_in_the_band, points_in_the_band_count, sizeof(Point), compareY);
+  int i, j;
+  // Compare their distances with the minimum distance
+  for (i = 0; i < points_in_the_band_count; i++) {
+    // 7 because you can have at maximum other 6 points in the region
+    for (j = 0; j < 6; j++) {
+      int k = i + 1 + j;
+      if (k < points_in_the_band_count) {
+        double distance_now =
+            distance(points_in_the_band[i], points_in_the_band[k]);
+        if (distance_now < result->distance) {
+          result->distance = distance_now;
+          result->point1 = points_in_the_band[i];
+          result->point2 = points_in_the_band[k];
+        }
+      }
+    }
+  }
+}
+
 // Returns the closest pair of points using the divide et impera method.
 // The input points MUST be sorted by ascending X coordinate
 static inline PairOfPoints closest_points_divide(const PointVec sorted_x) {
@@ -60,25 +84,13 @@ static inline PairOfPoints closest_points_divide(const PointVec sorted_x) {
       j++;
     }
   }
-  // Sort the points in the band accoring to the y coordinate
-  qsort(points_in_the_band, points_in_the_band_count, sizeof(Point), compareY);
-  // Compare their distances with the minimum distance
-  for (i = 0; i < points_in_the_band_count; i++) {
-    // 7 because you can have at maximum other 6 points in the region
-    for (j = 0; j < 6; j++) {
-      int k = i + 1 + j;
-      if (k < points_in_the_band_count) {
-        double distance_now =
-            distance(points_in_the_band[i], points_in_the_band[k]);
-        if (distance_now < result.distance) {
-          result.distance = distance_now;
-          result.point1 = points_in_the_band[i];
-          result.point2 = points_in_the_band[k];
-        }
-      }
-    }
-  }
+
+  PointVec band = {points_in_the_band_count, points_in_the_band};
+
+  band_update_result(band, &result);
+
   free(points_in_the_band);
+
   return result;
 }
 
