@@ -97,7 +97,7 @@ cd $(pwd)
 
 I=0
 EXIT_CODE="R"
-while [[ "\$EXIT_CODE" == "R" && \$I -le $MAX_CHECKS ]]; do
+while [[ "\$EXIT_CODE" != "F" && \$I -le $MAX_CHECKS ]]; do
   sleep $INTERVAL_SECONDS
   I=\$((I + 1))
   JOB_RESULT_QSTAT=\$(qstat $JOB_ID -H | tail -n 1)
@@ -122,13 +122,11 @@ zip -r outputs.zip \
   "$TARGET_PARALLEL_SCRIPT.o$JOB_NUMBER"
 
 case \$EXIT_CODE in
-  "S")
-    MESSAGE="finished successfully🧸";;
   "F")
     if [[ "\$TIME_AVAILABLE" == "\$TIME_ELAPSED" ]]; then
       MESSAGE="timed out 🦖💥\nThe time limit was \$TIME_AVAILABLE minutes."
     else
-      MESSAGE="Failed for an unknown reason 🤐💥
+      MESSAGE="finished successfully🧸";;
 It ran for \$TIME_ELAPSED minutes.
 The time limit was \$TIME_AVAILABLE minutes."
     fi;;
