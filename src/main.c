@@ -137,8 +137,75 @@ int main(const int argc, const char *const *const argv) {
 
       fprintf(out_fp, "Sending local_best to process %d\n", dest);
 
-      // TODO send border points
+      // Finding border points
 
+      // This is not exact, we may fix it later
+      Point leftmost_point = local_points.points[0];
+      Point rightmost_point = local_points.points[local_points.length - 1];
+
+      // Figure out how many points we have in the bands
+      int i;
+      int points_in_left_band = 0;
+      int points_in_right_band = 0;
+      for (i = 0; i < local_points.length; i++) {
+        Point current_point = local_points.points[i];
+        double d = current_point.x - leftmost_point.x;
+        if (d < local_best.distance) {
+          points_in_left_band++;
+        } else {
+          break;
+        }
+      }
+      for (i = local_points.length - 1; i >= 0; i--) {
+        Point current_point = local_points.points[i];
+        double d = rightmost_point.x - current_point.x;
+        if (d < local_best.distance) {
+          points_in_right_band++;
+        } else {
+          break;
+        }
+      }
+
+      // Allocate and populate the bands
+      PointVec left_band_points = {
+          points_in_left_band,
+          malloc(points_in_left_band * sizeof(Point)),
+      };
+      PointVec right_band_points = {
+          points_in_right_band,
+          malloc(points_in_right_band * sizeof(Point)),
+      };
+      int j = 0;
+      for (i = 0; i < local_points.length; i++) {
+        Point current_point = local_points.points[i];
+        double d = current_point.x - leftmost_point.x;
+        if (d < local_best.distance) {
+          left_band_points.points[j] = current_point;
+          j++;
+        } else {
+          break;
+        }
+      }
+      j = 0;
+      for (i = local_points.length - 1; i >= 0; i--) {
+        Point current_point = local_points.points[i];
+        double d = rightmost_point.x - current_point.x;
+        if (d < local_best.distance) {
+          right_band_points.points[j] = current_point;
+          j++;
+        } else {
+          break;
+        }
+      }
+
+      // Send border points
+      MPI_Send(&left_band_points.points, points_in_left_band, mpi_point_type,
+               dest, my_rank, MPI_COMM_WORLD);
+      MPI_Send(&right_band_points.points, points_in_right_band, mpi_point_type,
+               dest, my_rank, MPI_COMM_WORLD);
+
+      free(left_band_points.points);
+      free(right_band_points.points);
     } else {
       // Receive local distance and merge
       int src = my_rank + (int)pow(2, current_level);
