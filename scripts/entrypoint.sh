@@ -126,12 +126,13 @@ case \$EXIT_CODE in
     if [[ "\$TIME_AVAILABLE" == "\$TIME_ELAPSED" ]]; then
       MESSAGE="timed out 🦖💥\nThe time limit was \$TIME_AVAILABLE minutes."
     else
-      MESSAGE="finished successfully🧸";;
-It ran for \$TIME_ELAPSED minutes.
-The time limit was \$TIME_AVAILABLE minutes."
+      MESSAGE="finished successfully 🧸"
     fi;;
   *)
-    MESSAGE="finished with an unknown status: \$EXIT_CODE 👾" ;;
+    MESSAGE="finished with an unknown status: \$EXIT_CODE 👾
+
+It ran for \$TIME_ELAPSED minutes.
+The time limit was \$TIME_AVAILABLE minutes" ;;
 esac
 
 $(pwd)/notify_on_telegram.sh \
