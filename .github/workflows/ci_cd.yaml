@@ -91,7 +91,9 @@ jobs:
                 mkdir -p $RUN_DIR;
                done;
                ls $RUN_DIR
-               mv $CODE_DIR/scripts/* $RUN_DIR/
+               cp -r $CODE_DIR/scripts/entrypoint.sh \
+                 $CODE_DIR/scripts/notify_on_telegram.sh \
+                 $CODE_DIR/data $RUN_DIR
               "
 
           echo "RUN_DIR=$RUN_DIR" >> $GITHUB_OUTPUT

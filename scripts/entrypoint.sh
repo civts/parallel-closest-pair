@@ -50,7 +50,7 @@ cat >$TARGET_PARALLEL_SCRIPT <<EOL
 module load mpich-3.2
 
 EXECUTABLE=$(pwd)/parallel_closest_points
-INPUT_PATH=$(pwd)/../../code/data/${INPUT_FILE}
+INPUT_PATH=$(pwd)/data/${INPUT_FILE}
 OUTPUT_PATH=$OUTPUT_PATH
 
 mkdir \$OUTPUT_PATH
