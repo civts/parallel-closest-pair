@@ -40,8 +40,8 @@ jobs:
           unitn_password: ${{secrets.UNITN_PASSWORD}}
       - name: Populate notify_on_telegram
         run: |
-          sed -i 's/<BOT_TOKEN>/${{secrets.BOT_TOKEN}}/g' ./scripts/notify_on_telegram.sh
-          sed -i 's/<TELEGRAM_CHAT_ID>/${{secrets.TELEGRAM_CHAT_ID}}/g' ./scripts/notify_on_telegram.sh
+          sed -i 's/<BOT_TOKEN>/${{secrets.BOT_TOKEN}}/g' ./scripts/CI/notify_on_telegram.sh
+          sed -i 's/<TELEGRAM_CHAT_ID>/${{secrets.TELEGRAM_CHAT_ID}}/g' ./scripts/CI/notify_on_telegram.sh
       - name: Test the connection to the cluster
         env:
           SSHPASS: ${{secrets.UNITN_PASSWORD}}

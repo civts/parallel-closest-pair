@@ -141,7 +141,6 @@ case \$EXIT_CODE in
 It ran for \$TIME_ELAPSED minutes.
 The time limit was \$TIME_AVAILABLE minutes."
       fi
-      echo $MESSAGE
     fi;;
   *)
     MESSAGE="finished with an unknown status: \$EXIT_CODE 👾
