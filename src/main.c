@@ -370,9 +370,6 @@ int main(const int argc, const char *const *const argv) {
       fprintf(out_fp, "New local_best: %.2f, P1 (%d, %d), P2 (%d, %d)\n\n",
               local_best.distance, local_best.point1.x, local_best.point1.y,
               local_best.point2.x, local_best.point2.y);
-      FILE *res_fp = setup_file(-1, output_path);
-      fprintf(res_fp, "The minimum distance is %f", local_best.distance);
-      close_file(res_fp);
     }
   }
 
@@ -397,6 +394,10 @@ int main(const int argc, const char *const *const argv) {
     fprintf(out_fp, "Total time: %f seconds\n", total_time);
     fprintf(out_fp, "Reading time: %f seconds\n", read_time);
     fprintf(out_fp, "Scatter time: %f seconds\n", scatter_time);
+
+    FILE *res_fp = setup_file(-1, output_path);
+    fprintf(res_fp, "The minimum distance is %f", local_best.distance);
+    close_file(res_fp);
 
     printf("All done!\n");
   }
