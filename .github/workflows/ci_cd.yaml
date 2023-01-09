@@ -74,13 +74,13 @@ jobs:
                ls $CODE_DIR
               "
 
-          echo -n "$JOB_TAG" > ./scripts/tag
-          RUN_TRIGGER_FILE=./scripts/run_trigger
+          echo -n "$JOB_TAG" > ./scripts/CI/tag
+          RUN_TRIGGER_FILE=./scripts/CI/run_trigger
           echo "JOB_TAG=$JOB_TAG" > $RUN_TRIGGER_FILE
           echo "Github commit hash=${{GITHUB.SHA}}" >> $RUN_TRIGGER_FILE
           echo "Github commit author=${{GITHUB.ACTOR}}" >> $RUN_TRIGGER_FILE
 
-          sed -i "s/{{UNITN_BASE}}/$UNITN_BASE/g" ./scripts/entrypoint.sh 
+          sed -i "s/{{UNITN_BASE}}/$UNITN_BASE/g" ./scripts/CI/entrypoint.sh 
 
           sshpass -e \
             scp -r -o "user=${{secrets.UNITN_USERNAME}}" . "hpc2.unitn.it:$CODE_DIR"
@@ -91,8 +91,7 @@ jobs:
                 mkdir -p $RUN_DIR;
                done;
                ls $RUN_DIR
-               cp -r $CODE_DIR/scripts/entrypoint.sh \
-                 $CODE_DIR/scripts/notify_on_telegram.sh \
+               cp -r $CODE_DIR/scripts/CI/* \
                  $CODE_DIR/data $RUN_DIR
               "
 

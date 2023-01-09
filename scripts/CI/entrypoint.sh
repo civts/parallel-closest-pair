@@ -1,6 +1,9 @@
 #! /usr/bin/env bash
 
 # This script is intended to be run by the CI, on the cluster.
+# This is for running the program once
+
+# Take average over 8 times
 
 NICKNAME=$(cat ./tag)
 NICKNAME_NICE=$(cut -d '_' -f 1 <<<"$NICKNAME")
