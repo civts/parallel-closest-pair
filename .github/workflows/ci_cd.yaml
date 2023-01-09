@@ -67,9 +67,9 @@ jobs:
 
           sshpass -e \
             ssh -l "${{secrets.UNITN_USERNAME}}" hpc2.unitn.it \
-              "for i in {1..10}; do
-                rm -rf $CODE_DIR ./unitn_vpn_script.sh ./unitn_hireport.sh
-                mkdir -p $CODE_DIR
+              "rm -rf $CODE_DIR
+               for i in {1..10}; do
+                 mkdir -p $CODE_DIR
                done;
                ls $CODE_DIR
               "
@@ -81,6 +81,7 @@ jobs:
           echo "Github commit author=${{GITHUB.ACTOR}}" >> $RUN_TRIGGER_FILE
 
           sed -i "s/{{UNITN_BASE}}/$UNITN_BASE/g" ./scripts/CI/entrypoint.sh 
+          ./unitn_vpn_script.sh ./unitn_hireport.sh
 
           sshpass -e \
             scp -r -o "user=${{secrets.UNITN_USERNAME}}" . "hpc2.unitn.it:$CODE_DIR"
