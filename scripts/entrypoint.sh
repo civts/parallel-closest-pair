@@ -26,7 +26,7 @@ ensure_home_is_not_full
 
 TARGET_PARALLEL_SCRIPT="./parallel.sh"
 FINALIZE_SCRIPT="$(pwd)/finalize.sh"
-N_CPUS=4
+N_CPUS=8
 N_NODES=1
 N_PROCESSES=$((N_NODES * N_CPUS))
 MEM_GB=2
