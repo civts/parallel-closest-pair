@@ -31,7 +31,7 @@ jobs:
       - name: Download the repo
         uses: actions/checkout@v3
       - name: Get dependencies for later
-        run: sudo apt-get install -qy petname sshpass mpich
+        run: sudo apt-get install -qy petname sshpass
       - name: Connect to VPN
         id: connect_to_vpn
         uses: ./.github/workflows/setup_vpn
