@@ -1,0 +1,129 @@
+name: Benchmark
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Download the repo
+        uses: actions/checkout@v3
+      - name: Get the dependencies
+        run: sudo apt-get install -qy mpich cmake
+      - name: Compile the main executable
+        run: |
+          cd src/
+          mpicc main.c -lm
+      - name: Run the tests
+        run: ./scripts/test.sh
+
+  deploy_on_cluster:
+    name: Deploy on cluster
+    runs-on: ubuntu-22.04
+    needs: build
+    steps:
+      - name: Download the repo
+        uses: actions/checkout@v3
+      - name: Get dependencies for later
+        run: sudo apt-get install -qy petname sshpass
+      - name: Connect to VPN
+        id: connect_to_vpn
+        uses: ./.github/workflows/setup_vpn
+        with:
+          unitn_username: ${{secrets.UNITN_USERNAME}}
+          unitn_password: ${{secrets.UNITN_PASSWORD}}
+      - name: Populate notify_on_telegram
+        run: |
+          sed -i 's/<BOT_TOKEN>/${{secrets.BOT_TOKEN}}/g' ./scripts/CI/notify_on_telegram.sh
+          sed -i 's/<TELEGRAM_CHAT_ID>/${{secrets.TELEGRAM_CHAT_ID}}/g' ./scripts/CI/notify_on_telegram.sh
+      - name: Test the connection to the cluster
+        env:
+          SSHPASS: ${{secrets.UNITN_PASSWORD}}
+        run: |
+          mkdir -p ~/.ssh/
+          # If this step fails, the keys have probably changed. Do an SSH from your pc and update them here
+          echo "hpc2.unitn.it ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHALG5fiqoi+CXHjzbK+wZWQxtx1sGodKKPK1Zv/YweB" >> ~/.ssh/known_hosts
+          echo "hpc2.unitn.it ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBF86esyRmGePgo+439HtbJQjpB8J4A1OI/GgrrW9vr6ttpGZ2GXOCZpTrt4yhk+mVCnpAK65ki/3CAVXOTv68ms=" >> ~/.ssh/known_hosts
+          sshpass -e ssh -l "${{secrets.UNITN_USERNAME}}" hpc2.unitn.it "echo ''"
+      - name: Copy code on the cluster
+        id: copy_to_cluster
+        env:
+          SSHPASS: ${{secrets.UNITN_PASSWORD}}
+        run: |
+
+          DATE_NOW=$(date +%s)
+          PETNAME=$(petname)
+          JOB_TAG="${PETNAME}_${DATE_NOW}"
+          UNITN_BASE=$(echo "${{secrets.UNITN_USERNAME}}" | sed 's/@unitn.it//')
+          BASE_DIR=/home/${UNITN_BASE}/HPC_course/benchmarks/$JOB_TAG
+          CODE_DIR=$BASE_DIR/code_to_compile
+          RUN_DIR=$BASE_DIR/runs
+
+          rm -rf ./unitn_vpn_script.sh ./unitn_hireport.sh
+          sshpass -e \
+            ssh -l "${{secrets.UNITN_USERNAME}}" hpc2.unitn.it \
+              "rm -rf $CODE_DIR
+               for i in {1..10}; do
+                 mkdir -p $CODE_DIR
+                 mkdir -p $RUN_DIR
+               done;
+               ls $CODE_DIR
+              "
+
+          RUN_TRIGGER_FILE=./scripts/CI/run_trigger
+          echo "JOB_TAG=$JOB_TAG" > $RUN_TRIGGER_FILE
+          echo "Github commit hash=${{GITHUB.SHA}}" >> $RUN_TRIGGER_FILE
+          echo "Github commit author=${{GITHUB.ACTOR}}" >> $RUN_TRIGGER_FILE
+
+          sed -i "s/{{BENCHMARK_NAME}}/$PETNAME/g" ./scripts/CI/benchmark.sh 
+          sed -i "s/{{RESULTS_GOOGLE_FORM_ID}}/${{secrets.RESULTS_GOOGLE_FORM_ID}}/g" ./scripts/CI/benchmark.sh 
+          sed -i "s/{{UNITN_BASE}}/$UNITN_BASE/g" ./scripts/CI/benchmark.sh 
+
+          sshpass -e \
+            scp -r -o "user=${{secrets.UNITN_USERNAME}}" . "hpc2.unitn.it:$CODE_DIR"
+
+          echo "BASE_DIR=$BASE_DIR" >> $GITHUB_OUTPUT
+          echo "CODE_DIR=$CODE_DIR" >> $GITHUB_OUTPUT
+      - name: Compile the code
+        env:
+          SSHPASS: ${{secrets.UNITN_PASSWORD}}
+        run: |
+          CODE_DIR=${{steps.copy_to_cluster.outputs.CODE_DIR}}
+          BASE_DIR=${{steps.copy_to_cluster.outputs.BASE_DIR}}
+          sshpass -e \
+            ssh -l "${{secrets.UNITN_USERNAME}}" hpc2.unitn.it \
+              "cd $CODE_DIR/src/
+               module load mpich-3.2
+               mpicc -o parallel_closest_points main.c -lm
+               module unload mpich-3.2
+               
+               rm -rf $CODE_DIR/data/dataset_generator
+
+               mv $CODE_DIR/src/parallel_closest_points \
+                $CODE_DIR/scripts/CI/notify_on_telegram.sh \
+                $CODE_DIR/scripts/CI/benchmark.sh \
+                $CODE_DIR/scripts/CI/run_trigger \
+                $CODE_DIR/data \
+                $BASE_DIR
+               rm -rf $CODE_DIR
+              "
+      - name: Run the benchmark
+        env:
+          SSHPASS: ${{secrets.UNITN_PASSWORD}}
+        run: |
+          sshpass -e \
+            ssh -l "${{secrets.UNITN_USERNAME}}" hpc2.unitn.it \
+              "cd ${{steps.copy_to_cluster.outputs.BASE_DIR}}
+               nohup ./benchmark.sh &
+               disown
+               echo "Benchmarking launched"
+              "
+      - name: Stop VPN
+        if: always()
+        run: |
+          kill -15 ${{ steps.connect_to_vpn.outputs.vpn_pid }}
