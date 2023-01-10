@@ -249,6 +249,12 @@ int main(const int argc, const char *const *const argv) {
         local_best.point2 = partial_best.point2;
       }
 
+      fprintf(out_fp,
+              "Local_best after updating %.2f, P1 (%d, %d), P2 (%d, "
+              "%d)\n",
+              local_best.distance, local_best.point1.x, local_best.point1.y,
+              local_best.point2.x, local_best.point2.y);
+
       // Receive border points
       int border_count[2];
       MPI_Recv(&border_count, 2, MPI_INT, src, src, MPI_COMM_WORLD, &mpi_stat);
@@ -309,6 +315,13 @@ int main(const int argc, const char *const *const argv) {
 
       // Check the band for closer points (eventually updating local best)
       band_update_result(central_band, &local_best);
+
+      fprintf(out_fp,
+              "Local_best after band update %.2f, P1 (%d, %d), P2 (%d, "
+              "%d)\n",
+              local_best.distance, local_best.point1.x, local_best.point1.y,
+              local_best.point2.x, local_best.point2.y);
+
       free(central_band.points);
 
       // Compute left band

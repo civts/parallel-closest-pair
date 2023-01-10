@@ -48,5 +48,6 @@
     "**/.vscode",
     "**/.vscode/**"
   ],
-  "python.analysis.typeCheckingMode": "basic"
+  "python.analysis.typeCheckingMode": "basic",
+  "cmake.sourceDirectory": "${workspaceFolder}/test"
 }
