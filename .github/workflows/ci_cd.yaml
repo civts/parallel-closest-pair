@@ -81,7 +81,7 @@ jobs:
           echo "Github commit author=${{GITHUB.ACTOR}}" >> $RUN_TRIGGER_FILE
 
           sed -i "s/{{UNITN_BASE}}/$UNITN_BASE/g" ./scripts/CI/entrypoint.sh 
-          ./unitn_vpn_script.sh ./unitn_hireport.sh
+          rm ./unitn_vpn_script.sh ./unitn_hireport.sh
 
           sshpass -e \
             scp -r -o "user=${{secrets.UNITN_USERNAME}}" . "hpc2.unitn.it:$CODE_DIR"
