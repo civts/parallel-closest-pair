@@ -72,7 +72,6 @@ jobs:
                  mkdir -p $CODE_DIR
                  mkdir -p $RUN_DIR
                done;
-               ls $CODE_DIR
               "
 
           RUN_TRIGGER_FILE=./scripts/CI/run_trigger

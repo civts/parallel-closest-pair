@@ -70,8 +70,8 @@ jobs:
               "rm -rf $CODE_DIR
                for i in {1..10}; do
                  mkdir -p $CODE_DIR
+                 mkdir -p $RUN_DIR
                done;
-               ls $CODE_DIR
               "
 
           echo -n "$JOB_TAG" > ./scripts/CI/tag
@@ -88,10 +88,7 @@ jobs:
 
           sshpass -e \
             ssh -l "${{secrets.UNITN_USERNAME}}" hpc2.unitn.it \
-              "for i in {1..10}; do
-                mkdir -p $RUN_DIR;
-               done;
-               ls $RUN_DIR
+              "
                cp -r $CODE_DIR/scripts/CI/* \
                  $CODE_DIR/data $RUN_DIR
               "
