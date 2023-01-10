@@ -115,6 +115,8 @@ jobs:
           sshpass -e \
             ssh -l "${{secrets.UNITN_USERNAME}}" hpc2.unitn.it \
               "cd ${{steps.copy_to_cluster.outputs.RUN_DIR}}
+               # Pro tip: if the github action gets stuck waiting for this to finish,
+               # look at the end of benchmark.yaml
                ./entrypoint.sh
               "
       - name: Stop VPN

@@ -111,16 +111,20 @@ jobs:
                 $BASE_DIR
                rm -rf $CODE_DIR
               "
-      - name: Run the benchmark
+      - name: Launch the benchmark
         env:
           SSHPASS: ${{secrets.UNITN_PASSWORD}}
         run: |
           sshpass -e \
             ssh -l "${{secrets.UNITN_USERNAME}}" hpc2.unitn.it \
               "cd ${{steps.copy_to_cluster.outputs.BASE_DIR}}
-               nohup ./benchmark.sh &
+               echo 'Launching the benchmark'
+               # Have to put it in background AND redirect outputs,
+               # else GitHub will not consider this step finished
+               # until the benchmark script has finished too.
+               nohup ./benchmark.sh 1>'./benchmark_stdout.log' 2>'./benchmark_stderr.log' &
                disown
-               echo "Benchmarking launched"
+               echo 'Benchmarking launched 🚀'
               "
       - name: Stop VPN
         if: always()
