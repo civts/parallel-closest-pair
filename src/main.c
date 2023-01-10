@@ -309,8 +309,8 @@ int main(const int argc, const char *const *const argv) {
              central_right_band_len * sizeof(Point));
 
       // Finish populating the central band by adding the central-left points
-      memcpy(&central_band.points[central_right_band_len], &central_left_band,
-             central_left_band_len * sizeof(Point));
+      memcpy(&central_band.points[central_right_band_len],
+             central_left_band.points, central_left_band_len * sizeof(Point));
       free(central_left_band.points);
 
       // Check the band for closer points (eventually updating local best)
