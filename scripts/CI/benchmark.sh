@@ -18,6 +18,18 @@ MAX_MINUTES=02
 GITHUB_COMMIT_SHA=$(cat run_trigger | grep "commit hash" | sed 's/.*hash=//')
 GITHUB_COMMIT_AUTHOR=$(cat run_trigger | grep "commit author" | sed 's/.*author=//')
 
+if (($# != 1)); then
+  echo >&2 "This script takes exactly one argument: the path to the data directory"
+  exit 1
+fi
+
+DATA_DIR_PATH=$(echo $1 | sed 's/\/$//')
+
+if [[ ! -d $DATA_DIR_PATH ]]; then
+  echo >&2 "Can't find data diretory at $DATA_DIR_PATH"
+  exit 1
+fi
+
 mkdir runs
 
 ensure_home_is_not_full() {
@@ -36,7 +48,7 @@ ensure_home_is_not_full() {
 I=0
 TOTAL_RUNS=1
 for RUN_INDEX in {1..$TOTAL_RUNS}; do #Run the experiment 8 times so that we can average the results
-  for INPUT_FILE in data/*.txt; do
+  for INPUT_FILE in $DATA_DIR_PATH/*.txt; do
     ensure_home_is_not_full
     for N_CPUS in 1 2 4 8 16; do
       for N_NODES in 1 2 4 8 16; do
@@ -51,14 +63,14 @@ done         # For 8 times
 ./notify_on_telegram.sh "Starting the benchmark $BENCHMARK_NAME ($I jobs) 🛩"
 
 for RUN_INDEX in {1..$TOTAL_RUNS}; do #Run the experiment 8 times so that we can average the results
-  for INPUT_FILE in data/*.txt; do
+  for INPUT_FILE in $DATA_DIR_PATH/*.txt; do
     ensure_home_is_not_full
     for N_CPUS in 1 2 4 8 16; do
       for N_NODES in 1 2 4 8 16; do
         for STRATEGY in "pack" "scatter" "pack:excl" "scatter:excl"; do
 
           # Create run directory
-          INPUT_NAME_CLEAN=$(echo $INPUT_FILE | sed 's/\.txt//' | sed 's/.*data\///')
+          INPUT_NAME_CLEAN=$(echo $INPUT_FILE | sed 's/.*\///' | sed 's/\.txt//')
           RUN_DIRECTORY_NAME="${INPUT_NAME_CLEAN}_${N_CPUS}_${N_NODES}_${STRATEGY}"
           RUN_DIRECTORY="$(pwd)/runs/$RUN_DIRECTORY_NAME"
           OUTPUT_DIR_FOR_RUN="$RUN_DIRECTORY/output"
