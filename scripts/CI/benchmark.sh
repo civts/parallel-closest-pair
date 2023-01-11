@@ -77,8 +77,19 @@ for RUN_INDEX in {1..$TOTAL_RUNS}; do #Run the experiment 8 times so that we can
           EXECUTABLE_FOR_RUN="$RUN_DIRECTORY/parallel_closest_points"
           N_PROCESSES=$((N_NODES * N_CPUS))
 
+          # If strategy starts with pack
+          case $STRATEGY in pack*)
+            if [[ $N_PROCESSES -gt 32 ]]; then
+              # Skip this run
+              continue
+            fi
+            ;;
+          esac
+
           if [ $N_PROCESSES -gt 64 ]; then
             MAX_MINUTES=05
+          else
+            MAX_MINUTES=02
           fi
 
           mkdir -p "$RUN_DIRECTORY/data" "$OUTPUT_DIR_FOR_RUN"
