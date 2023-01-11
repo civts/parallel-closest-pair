@@ -53,6 +53,18 @@ for RUN_INDEX in {1..$TOTAL_RUNS}; do #Run the experiment 8 times so that we can
     for N_CPUS in 1 2 4 8 16; do
       for N_NODES in 1 2 4 8 16; do
         for STRATEGY in "pack" "scatter" "pack:excl" "scatter:excl"; do
+
+          N_PROCESSES=$((N_NODES * N_CPUS))
+
+          # If strategy starts with pack
+          case $STRATEGY in pack*)
+            if [[ $N_PROCESSES -gt 32 ]]; then
+              # Skip this run
+              continue
+            fi
+            ;;
+          esac
+
           I=$((I + 1))
         done # STRATEGY for loop
       done   # N_NODES for loop
