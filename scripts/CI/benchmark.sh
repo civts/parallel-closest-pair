@@ -96,7 +96,7 @@ for RUN_INDEX in {1..$TOTAL_RUNS}; do #Run the experiment 8 times so that we can
 
           # "copy" (link) the files to the run directory
           INPUT_FILE_FOR_RUN="$RUN_DIRECTORY/data/input.txt"
-          ln -s "$(pwd)/$INPUT_FILE" "$INPUT_FILE_FOR_RUN"
+          ln -s "$INPUT_FILE" "$INPUT_FILE_FOR_RUN"
           ln -s "$(pwd)/parallel_closest_points" "$EXECUTABLE_FOR_RUN"
 
           # Create the PBS script to run the program
