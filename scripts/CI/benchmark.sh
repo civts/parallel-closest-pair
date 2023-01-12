@@ -46,8 +46,8 @@ ensure_home_is_not_full() {
 }
 
 I=0
-TOTAL_RUNS=1
-for RUN_INDEX in {1..$TOTAL_RUNS}; do #Run the experiment 8 times so that we can average the results
+TOTAL_RUNS=4
+for ((RUN_INDEX = 1; RUN_INDEX <= TOTAL_RUNS; RUN_INDEX++)); do #Run the experiment 8 times so that we can average the results
   for INPUT_FILE in $DATA_DIR_PATH/*.txt; do
     ensure_home_is_not_full
     for N_CPUS in 1 2 4 8 16; do
@@ -74,7 +74,7 @@ done         # For 8 times
 
 ./notify_on_telegram.sh "Starting the benchmark $BENCHMARK_NAME ($I jobs) 🛩"
 
-for RUN_INDEX in {1..$TOTAL_RUNS}; do #Run the experiment 8 times so that we can average the results
+for ((RUN_INDEX = 1; RUN_INDEX <= TOTAL_RUNS; RUN_INDEX++)); do
   for INPUT_FILE in $DATA_DIR_PATH/*.txt; do
     ensure_home_is_not_full
     for N_CPUS in 1 2 4 8 16; do
