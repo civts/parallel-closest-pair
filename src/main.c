@@ -311,8 +311,13 @@ int main(const int argc, const char *const *const argv) {
              central_left_band.points, central_left_band_len * sizeof(Point));
       free(central_left_band.points);
 
+      int left_x = central_band.points[central_right_band_len - 1].x;
+      int right_idx =
+          central_right_band_len - (central_left_band_len == 0 ? 1 : 0);
+      int right_x = central_band.points[right_idx].x;
+      double middle_point = (left_x + right_x) / 2;
       // Check the band for closer points (eventually updating local best)
-      band_update_result(central_band, &local_best);
+      band_update_result(central_band, middle_point, &local_best);
 
       fprintf(out_fp,
               "Local_best after band update %.2f, P1 (%d, %d), P2 (%d, "

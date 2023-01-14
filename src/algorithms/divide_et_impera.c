@@ -9,25 +9,71 @@
 
 PairOfPoints closest_points_rec(const PointVec sorted_x);
 
-void band_update_result(PointVec band, PairOfPoints *result) {
+void band_update_result(PointVec band, double middle_point,
+                        PairOfPoints *result) {
   Point *points_in_the_band = band.points;
   int points_in_the_band_count = band.length;
   // Sort the points in the band accoring to the y coordinate
   qsort(points_in_the_band, points_in_the_band_count, sizeof(Point), compareY);
   int i, j;
-  // Compare their distances with the minimum distance
+  // For each point (on the left)
   for (i = 0; i < points_in_the_band_count; i++) {
-    // 7 because you can have at maximum other 6 points in the region
-    for (j = 0; j < 6; j++) {
-      int k = i + 1 + j;
-      if (k < points_in_the_band_count) {
-        double distance_now =
-            distance(points_in_the_band[i], points_in_the_band[k]);
-        if (distance_now < result->distance) {
-          result->distance = distance_now;
-          result->point1 = points_in_the_band[i];
-          result->point2 = points_in_the_band[k];
+    Point p = points_in_the_band[i];
+    if (p.x > middle_point) {
+      continue;
+    }
+    // Consider the points below it, on the right
+    int back = 0;
+    for (j = 0; j < 2; j++) {
+      int idx = i - 1 - j;
+      if (idx < 0) {
+        break;
+      }
+      Point q = points_in_the_band[idx];
+      if (q.x < middle_point) {
+        j--;
+        back++;
+        if (back == 3) {
+          break;
         }
+        continue;
+      }
+      int diff = p.y - q.y;
+      if (diff > result->distance) {
+        break;
+      }
+      double d = distance(p, q);
+      if (d < result->distance) {
+        result->distance = d;
+        result->point1 = p;
+        result->point2 = q;
+      }
+    }
+    // Consider the points above it, on the right
+    int forward = 0;
+    for (j = 0; j < 2; j++) {
+      int idx = i + 1 + j;
+      if (idx >= points_in_the_band_count) {
+        break;
+      }
+      Point q = points_in_the_band[idx];
+      if (q.x < middle_point) {
+        j--;
+        forward++;
+        if (forward == 3) {
+          break;
+        }
+        continue;
+      }
+      int diff = q.y - p.y;
+      if (diff > result->distance) {
+        break;
+      }
+      double d = distance(p, q);
+      if (d < result->distance) {
+        result->distance = d;
+        result->point1 = p;
+        result->point2 = q;
       }
     }
   }
@@ -87,7 +133,7 @@ static inline PairOfPoints closest_points_divide(const PointVec sorted_x) {
 
   PointVec band = {points_in_the_band_count, points_in_the_band};
 
-  band_update_result(band, &result);
+  band_update_result(band, middle_point, &result);
 
   free(points_in_the_band);
 
