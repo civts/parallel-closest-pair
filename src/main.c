@@ -146,86 +146,80 @@ int main(const int argc, const char *const *const argv) {
       // Find dividing line between the two halves
       Point leftmost_point = local_points.points[0];
       Point rightmost_point = local_points.points[local_points.length - 1];
-      double middle_point = (leftmost_point.x + rightmost_point.x) / 2.0;
 
-      // Figure out how many points we have in the bands
-      int i;
-      int points_in_left_band = 0;
-      int points_in_right_band = 0;
-      for (i = 0; i < local_points.length; i++) {
-        Point current_point = local_points.points[i];
-        double d = current_point.x - middle_point;
-        if (d < local_best.distance) {
-          points_in_left_band++;
-        } else {
-          break;
-        }
-      }
-      for (i = local_points.length - 1; i >= 0; i--) {
-        Point current_point = local_points.points[i];
-        double d = middle_point - current_point.x;
-        if (d < local_best.distance) {
-          points_in_right_band++;
-        } else {
-          break;
-        }
-      }
+      PointVec left_band = {0, NULL};
+      PointVec right_band = {0, NULL};
 
-      // Allocate and populate the bands
-      PointVec left_band_points = {
-          points_in_left_band,
-          malloc(points_in_left_band * sizeof(Point)),
-      };
-      check_not_failed_or_exit(left_band_points.points,
-                               "left_band_points.points");
-      PointVec right_band_points = {
-          points_in_right_band,
-          malloc(points_in_right_band * sizeof(Point)),
-      };
-      check_not_failed_or_exit(right_band_points.points,
-                               "right_band_points.points");
-
-      int j = 0;
-      for (i = 0; i < local_points.length; i++) {
-        Point current_point = local_points.points[i];
-        double d = current_point.x - middle_point;
-        if (d < local_best.distance) {
-          left_band_points.points[j] = current_point;
-          j++;
-        } else {
-          break;
+      if (distance(leftmost_point, rightmost_point) < local_best.distance) {
+        double middle_point = (leftmost_point.x + rightmost_point.x) / 2.0;
+        // Figure out how many points we have in the bands
+        int i;
+        for (i = 0; i < local_points.length; i++) {
+          Point current_point = local_points.points[i];
+          double d = current_point.x - middle_point;
+          if (d < local_best.distance) {
+            left_band.length++;
+          } else {
+            break;
+          }
         }
-      }
-      j = 0;
-      for (i = local_points.length - 1; i >= 0; i--) {
-        Point current_point = local_points.points[i];
-        double d = middle_point - current_point.x;
-        if (d < local_best.distance) {
-          right_band_points.points[j] = current_point;
-          j++;
-        } else {
-          break;
+        for (i = local_points.length - 1; i >= 0; i--) {
+          Point current_point = local_points.points[i];
+          double d = middle_point - current_point.x;
+          if (d < local_best.distance) {
+            right_band.length++;
+          } else {
+            break;
+          }
+        }
+
+        // Allocate and populate the bands
+        left_band.points = malloc(left_band.length * sizeof(Point));
+        check_not_failed_or_exit(left_band.points, "left_band.points");
+        right_band.points = malloc(right_band.length * sizeof(Point));
+        check_not_failed_or_exit(right_band.points, "right_band.points");
+
+        int j = 0;
+        for (i = 0; i < left_band.length; i++) {
+          Point current_point = local_points.points[i];
+          left_band.points[j] = current_point;
+        }
+        j = 0;
+        for (i = local_points.length - 1; i >= 0; i--) {
+          Point current_point = local_points.points[i];
+          double d = middle_point - current_point.x;
+          if (d < local_best.distance) {
+            right_band.points[j] = current_point;
+            j++;
+          } else {
+            break;
+          }
         }
       }
 
       // Send border count
-      int count_array[] = {points_in_left_band, points_in_right_band};
+      int count_array[] = {left_band.length, right_band.length};
       MPI_Send(&count_array, 2, MPI_INT, dest, my_rank, MPI_COMM_WORLD);
 
-      // Send border points
-      int total_points_to_send = points_in_left_band + points_in_right_band;
-      Point *all_border_points = malloc(sizeof(Point) * (total_points_to_send));
-      check_not_failed_or_exit(all_border_points, "all_border_points");
-      memcpy(all_border_points, left_band_points.points,
-             points_in_left_band * sizeof(Point));
-      memcpy(&all_border_points[points_in_left_band], right_band_points.points,
-             points_in_right_band * sizeof(Point));
+      // Only send border points if necessary
+      if (left_band.length + right_band.length > 0) {
+        // Send border points
+        int total_points_to_send = left_band.length + right_band.length;
+        Point *all_border_points =
+            malloc(sizeof(Point) * (total_points_to_send));
+        check_not_failed_or_exit(all_border_points, "all_border_points");
+        memcpy(all_border_points, left_band.points,
+               left_band.length * sizeof(Point));
+        memcpy(&all_border_points[left_band.length], right_band.points,
+               right_band.length * sizeof(Point));
 
-      MPI_Send(all_border_points, total_points_to_send, mpi_point_type, dest,
-               my_rank, MPI_COMM_WORLD);
+        MPI_Send(all_border_points, total_points_to_send, mpi_point_type, dest,
+                 my_rank, MPI_COMM_WORLD);
 
-      free(left_band_points.points);
-      free(right_band_points.points);
+        free(left_band.points);
+        free(right_band.points);
+      }
+
     } else {
       // Receive best distance that the other process found, and merge with our
       // result
@@ -278,14 +272,17 @@ int main(const int argc, const char *const *const argv) {
       Point *points_to_receive = malloc(sizeof(Point) * total_border_points);
       check_not_failed_or_exit(points_to_receive, "points_to_receive");
 
-      // Receive centrel-left and right points from other process
-      MPI_Recv(points_to_receive, total_border_points, mpi_point_type, src, src,
-               MPI_COMM_WORLD, &mpi_stat);
-      memcpy(central_left_band.points, points_to_receive,
-             central_left_band_len * sizeof(Point));
-      memcpy(right_band.points, &points_to_receive[central_left_band_len],
-             right_band_len * sizeof(Point));
-      free(points_to_receive);
+      if (central_left_band_len + right_band_len > 0) {
+
+        // Receive centrel-left and right points from other process
+        MPI_Recv(points_to_receive, total_border_points, mpi_point_type, src,
+                 src, MPI_COMM_WORLD, &mpi_stat);
+        memcpy(central_left_band.points, points_to_receive,
+               central_left_band_len * sizeof(Point));
+        memcpy(right_band.points, &points_to_receive[central_left_band_len],
+               right_band_len * sizeof(Point));
+        free(points_to_receive);
+      }
 
       // Populate our central-right band
       int central_right_band_len = 0;
