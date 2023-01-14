@@ -143,9 +143,10 @@ int main(const int argc, const char *const *const argv) {
 
       // Finding border points
 
-      // This is not exact, we may fix it later
+      // Find dividing line between the two halves
       Point leftmost_point = local_points.points[0];
       Point rightmost_point = local_points.points[local_points.length - 1];
+      double middle_point = (leftmost_point.x + rightmost_point.x) / 2.0;
 
       // Figure out how many points we have in the bands
       int i;
@@ -153,7 +154,7 @@ int main(const int argc, const char *const *const argv) {
       int points_in_right_band = 0;
       for (i = 0; i < local_points.length; i++) {
         Point current_point = local_points.points[i];
-        double d = current_point.x - leftmost_point.x;
+        double d = current_point.x - middle_point;
         if (d < local_best.distance) {
           points_in_left_band++;
         } else {
@@ -162,7 +163,7 @@ int main(const int argc, const char *const *const argv) {
       }
       for (i = local_points.length - 1; i >= 0; i--) {
         Point current_point = local_points.points[i];
-        double d = rightmost_point.x - current_point.x;
+        double d = middle_point - current_point.x;
         if (d < local_best.distance) {
           points_in_right_band++;
         } else {
@@ -187,7 +188,7 @@ int main(const int argc, const char *const *const argv) {
       int j = 0;
       for (i = 0; i < local_points.length; i++) {
         Point current_point = local_points.points[i];
-        double d = current_point.x - leftmost_point.x;
+        double d = current_point.x - middle_point;
         if (d < local_best.distance) {
           left_band_points.points[j] = current_point;
           j++;
@@ -198,7 +199,7 @@ int main(const int argc, const char *const *const argv) {
       j = 0;
       for (i = local_points.length - 1; i >= 0; i--) {
         Point current_point = local_points.points[i];
-        double d = rightmost_point.x - current_point.x;
+        double d = middle_point - current_point.x;
         if (d < local_best.distance) {
           right_band_points.points[j] = current_point;
           j++;
